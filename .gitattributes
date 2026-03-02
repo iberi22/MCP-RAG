@@ -1,0 +1,13 @@
+# Security: Never commit secrets
+*.key filter=secret
+*.pem filter=secret
+*.p12 filter=secret
+*.pfx filter=secret
+*_secret* filter=secret
+*_key* filter=secret
+*.env filter=secret
+
+# Database files: Never commit
+*.db -text
+*.sqlite -text
+*.sqlite3 -text

@@ -1,0 +1,16 @@
+{
+  "name": "repo-context-sync",
+  "description": "Sincroniza repos de GitHub (incremental por commit) hacia el RAG local con metadata por stack lista para inyeccion.",
+  "entrypoint": "python -m cerebro_python rag-sync-repos --config scripts/skills/repo_context_sync/repos.config.json --state .gitcore/repo_context_state.json --cache-dir .cache/repo-context-repos",
+  "workflow": ".github/workflows/repo-context-sync.yml",
+  "outputs": [
+    "cerebro_rag.db",
+    ".gitcore/repo_context_state.json"
+  ],
+  "capabilities": [
+    "incremental-sync",
+    "github-tracking",
+    "stack-aware-metadata",
+    "context-ready-ingestion"
+  ]
+}

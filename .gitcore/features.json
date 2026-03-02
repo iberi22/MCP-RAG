@@ -1,0 +1,125 @@
+{
+  "_comment": "Feature tracking adapted to MCP-RAG minimal architecture. Keep this JSON authoritative for verification status.",
+  "metadata": {
+    "project": "MCP-RAG",
+    "created": "2026-03-02",
+    "last_verified": "2026-03-02",
+    "total_features": 7,
+    "passing": 7,
+    "failing": 0
+  },
+  "features": [
+    {
+      "id": "feat-cli-rag-core",
+      "category": "core",
+      "description": "CLI ingest/search/delete/stats works end-to-end",
+      "steps": [
+        "Ingest scoped test content",
+        "Search with min-score and scope parameters",
+        "Verify non-empty expected result"
+      ],
+      "passes": true,
+      "verified_by": "manual-cli",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Commands available via `python -m cerebro_python`."
+    },
+    {
+      "id": "feat-mcp-transport",
+      "category": "integration",
+      "description": "MCP server responds over streamable HTTP and stdio",
+      "steps": [
+        "Start Docker stack",
+        "Call initialize on /mcp with valid Accept headers",
+        "Verify initialize response payload"
+      ],
+      "passes": true,
+      "verified_by": "manual-http-smoke",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Codex should use streamable_http or stdio config."
+    },
+    {
+      "id": "feat-scope-isolation",
+      "category": "retrieval",
+      "description": "Project/environment isolation prevents mixed retrieval",
+      "steps": [
+        "Ingest alpha and beta data",
+        "Query in alpha/dev strict scope",
+        "Verify no beta/prod leakage"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_scope_isolation.py",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Default `scope_mode` is strict."
+    },
+    {
+      "id": "feat-scope-adaptive",
+      "category": "retrieval",
+      "description": "Scope strategy supports strict/custom/auto behavior",
+      "steps": [
+        "Run strict mode and verify no expansion",
+        "Run custom mode with explicit env include",
+        "Run auto mode for release/rollback intent"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_scope_strategy.py",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Configured via `RAG_SCOPE_STRATEGY_ADAPTER`."
+    },
+    {
+      "id": "feat-temporal-consistency",
+      "category": "retrieval",
+      "description": "Temporal filters and latest-fact resolution behave correctly",
+      "steps": [
+        "Ingest fact versions with event_time/fact_key",
+        "Search with event_time_at cutoff",
+        "Verify latest-wins and cutoff behavior"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_scope_isolation.py",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Use `event_time_at`, `ingested_before`, and `prefer_latest_facts`."
+    },
+    {
+      "id": "feat-eval-levels",
+      "category": "quality",
+      "description": "Multi-level evaluation scripts pass locally and in Docker",
+      "steps": [
+        "Run local eval levels",
+        "Run Docker scoped smoke script",
+        "Verify all checks pass"
+      ],
+      "passes": true,
+      "verified_by": "scripts/rag_eval_levels.py + scripts/run_rag_eval_in_docker.ps1",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Docker script includes container readiness wait."
+    },
+    {
+      "id": "feat-repo-context-sync",
+      "category": "integration",
+      "description": "Incremental GitHub repository sync ingests stack-aware context into RAG",
+      "steps": [
+        "Configure tracked repositories in repos.config.json",
+        "Run rag-sync-repos and verify upsert/delete counters",
+        "Validate scheduled workflow commits updated DB/state artifacts"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_repo_context_sync.py",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Workflow: .github/workflows/repo-context-sync.yml"
+    }
+  ],
+  "verification_commands": {
+    "all": "python -m pytest -q tests",
+    "eval_local": "python scripts/rag_eval_levels.py --levels all",
+    "eval_docker": "powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1",
+    "adapters": "python -m cerebro_python adapters",
+    "repo_sync_dry_run": "python -m cerebro_python rag-sync-repos --config scripts/skills/repo_context_sync/repos.config.json --dry-run"
+  }
+}

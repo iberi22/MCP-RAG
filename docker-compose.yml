@@ -1,0 +1,30 @@
+services:
+  # ── Cerebro RAG + Cognitive Memory ─────────────────────────────────────────
+  cerebro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cerebro_mcp
+    env_file:
+      - .env                          # loads MINIMAX_API_KEY, MINIMAX_MODEL, RAG_* vars
+    volumes:
+      - cerebro_data:/app/data        # DB persists between runs
+    ports:
+      - "8001:8001"
+    # Run interactive chat: docker compose run --rm cerebro python -m cerebro_python rag-chat
+    # Run single ask:       docker compose run --rm cerebro python -m cerebro_python rag-ask -q "tu pregunta"
+
+  # ── Ollama (optional — only needed if using local embeddings) ───────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: mcp_rag_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    profiles:
+      - ollama                        # only starts with: docker compose --profile ollama up
+
+volumes:
+  cerebro_data:
+  ollama_data:

@@ -1,0 +1,99 @@
+{
+  "defaults": {
+    "project_id": "github-repos",
+    "environment_id": "prod",
+    "tags": [
+      "repo-context",
+      "github-sync"
+    ],
+    "include_extensions": [
+      ".py",
+      ".js",
+      ".jsx",
+      ".ts",
+      ".tsx",
+      ".java",
+      ".kt",
+      ".kts",
+      ".go",
+      ".rs",
+      ".c",
+      ".cc",
+      ".cpp",
+      ".h",
+      ".hpp",
+      ".cs",
+      ".php",
+      ".rb",
+      ".swift",
+      ".scala",
+      ".sql",
+      ".sh",
+      ".ps1",
+      ".yaml",
+      ".yml",
+      ".toml",
+      ".json",
+      ".ini",
+      ".cfg",
+      ".xml",
+      ".env",
+      ".md"
+    ],
+    "include_filenames": [
+      "dockerfile",
+      "docker-compose.yml",
+      "docker-compose.yaml",
+      "makefile",
+      "pyproject.toml",
+      "requirements.txt",
+      "package.json",
+      "package-lock.json",
+      "pnpm-lock.yaml",
+      "yarn.lock",
+      "cargo.toml",
+      "cargo.lock",
+      "go.mod",
+      "go.sum",
+      "pom.xml",
+      "build.gradle",
+      "build.gradle.kts",
+      "settings.gradle"
+    ],
+    "exclude_globs": [
+      ".git/**",
+      ".svn/**",
+      ".hg/**",
+      "node_modules/**",
+      ".venv/**",
+      "venv/**",
+      "__pycache__/**",
+      ".mypy_cache/**",
+      ".pytest_cache/**",
+      ".next/**",
+      ".nuxt/**",
+      "dist/**",
+      "build/**",
+      "target/**",
+      "vendor/**",
+      "*.min.js",
+      "*.min.css",
+      "*.map"
+    ],
+    "max_file_bytes": 300000
+  },
+  "repositories": [
+    {
+      "key": "local/mcp-rag",
+      "url": "file:///e:/scripts-python/MCP-RAG",
+      "branch": "main",
+      "stack": "python",
+      "project_id": "mcp-rag-self",
+      "environment_id": "dev",
+      "tags": [
+        "self-awareness",
+        "mcp-rag"
+      ]
+    }
+  ]
+}
