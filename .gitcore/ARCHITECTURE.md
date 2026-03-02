@@ -28,10 +28,13 @@ project: MCP-RAG
 
 ## Stack
 
-- Language: Python 3.14+ (project target)
-- Storage: SQLite (default), In-memory (ephemeral)
+- Language: Python 3.12+ (project target)
+- Storage: SQLite (default `sqlite_cognitive`), In-memory
 - MCP: FastMCP (`stdio` and streamable HTTP)
-- Embeddings: Hash (default), Ollama (optional)
+- Embeddings: Ollama (default `nomic-embed-text`), Hash
+- Chunking: Rust AST Chunker (`ast` default via `tree-sitter`), SimpleRegex
+- LLM Integration: MiniMax API (`MiniMax-M2.5`) with Anthropic-compatible protocol
+- Web Services: Subprocess `uvx minimax-coding-plan-mcp`
 - Deployment: Docker Compose
 
 ## Layers
@@ -59,8 +62,8 @@ project: MCP-RAG
 
 ## Planned Issue: `issue-rag-data-platform-2026-03-02`
 
-Status: `draft`  
-Execution: `not started`  
+Status: `draft`
+Execution: `not started`
 Goal: Define a business-aligned architecture to operate a multi-repo RAG data platform with segmented vector shards and on-demand retrieval.
 
 ### Business Requirements
@@ -143,6 +146,7 @@ Goal: Define a business-aligned architecture to operate a multi-repo RAG data pl
   - Incremental repo sync command and workflow (`rag-sync-repos` + `.github/workflows/repo-context-sync.yml`).
   - Stack-aware metadata ingestion with commit/path provenance.
   - Cognitive memory core components and unit tests.
+  - Agent memory ops skill for CLI/MCP usage routing and git-history ingestion (`rag-memory-plan`, `rag_memory_plan`, `scripts/skills/mcp_rag_memory_ops/`).
 - Pending:
   - Default runtime wiring for cognitive cycle in RAG/CLI/MCP path.
   - Production repository catalog by stack (non-local URLs for CI automation).

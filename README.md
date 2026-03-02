@@ -1,6 +1,7 @@
-# MCP-RAG Hexagonal
+# MCP-RAG (Beta)
+> **Note:** The project is currently in Beta phase until full functionality is proven with comprehensive RAG evaluation benchmarks.
 
-A minimal and decoupled project using hexagonal architecture:
+A minimalist, hexagonal-architecture RAG (Retrieval-Augmented Generation) system built for AI coding agents.
 - `domain`: models and ports
 - `application`: use cases and orchestration
 - `adapters`: storage, embeddings, chunking, cli, and mcp
@@ -29,6 +30,7 @@ Suggested startup order for agents:
 ### Base Commands
 - `python -m cerebro_python rag-ingest --document-id doc1 --text "content..."`
 - `python -m cerebro_python rag-search --query "content" --top-k 5 --min-score 0.2`
+- `python -m cerebro_python rag-memory-plan -q "investiga regresion en auth" --project-id alpha --environment-id dev`
 - `python -m cerebro_python rag-stats`
 - `python -m cerebro_python rag-delete --document-id doc1`
 - `python -m cerebro_python adapters`
@@ -48,6 +50,12 @@ Suggested startup order for agents:
 - Workflow automation: `.github/workflows/repo-context-sync.yml` (hourly + manual)
 
 The sync command ingests only changed files between commits and stores provenance metadata (`repo_key`, `repo_commit`, `repo_path`, `repo_stack`, `fact_key`) to keep context aligned with repository history.
+
+### Agent Memory Ops Skill (CLI + MCP)
+- Skill manifest: `scripts/skills/mcp_rag_memory_ops/skill.json`
+- Playbook: `scripts/skills/mcp_rag_memory_ops/playbook.json`
+- Git history to RAG: `python scripts/skills/mcp_rag_memory_ops/git_history_ingest.py --max-commits 80 --project-id alpha --environment-id dev`
+- MCP planning tool: `rag_memory_plan`
 
 ## MCP Usage
 - `python -m cerebro_python mcp`
@@ -131,7 +139,10 @@ Memory moves **down** (demotion / forgetting) when score decays below `forget_th
 cognitive_score = w_rec·recency + w_imp·importance + w_rel·relevance + w_freq·frequency
 ```
 
-### Cognitive & LLM Config (.env)
+### Cognitive & LLM Config (in `.env`)
+- `RAG_AUTO_INDEX_CODE=true` (Automatically triggers a background Git repository sync on startup)
+- `RAG_CHUNKER_ADAPTER=ast` (Uses the high-performance Rust tree-sitter chunker for code)
+- `RAG_REPOSITORY_ADAPTER=sqlite` (Uses local SQLite for persistence)
 - `MINIMAX_API_KEY=`            — Your MiniMax API key.
 - `MINIMAX_API_HOST=https://api.minimax.io`
 - `MINIMAX_MODEL=MiniMax-M2.5`  — Anthropic-compatible model name.
@@ -173,6 +184,7 @@ Exposed tools:
 - `rag_ingest`
 - `rag_search`
 - `rag_delete`
+- `rag_memory_plan`
 - `rag_stats`
 - `get_server_info`
 

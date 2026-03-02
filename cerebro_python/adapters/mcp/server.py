@@ -6,6 +6,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from cerebro_python.application.agent_memory_ops import build_memory_ops_plan
 from cerebro_python.application.use_cases import RagService
 
 
@@ -84,6 +85,22 @@ def build_mcp(service: RagService) -> FastMCP:
         return service.delete(document_id=document_id)
 
     @mcp.tool()
+    def rag_memory_plan(
+        query: str,
+        top_k: int = 8,
+        project_id: str | None = None,
+        environment_id: str | None = None,
+        include_environment_ids: list[str] | None = None,
+    ) -> dict[str, Any]:
+        return build_memory_ops_plan(
+            query=query,
+            top_k=top_k,
+            project_id=project_id,
+            environment_id=environment_id,
+            include_environment_ids=include_environment_ids,
+        )
+
+    @mcp.tool()
     def rag_stats() -> dict[str, Any]:
         return service.stats()
 
@@ -93,7 +110,14 @@ def build_mcp(service: RagService) -> FastMCP:
             "name": "cerebro-rag",
             "architecture": "hexagonal",
             "transport": "stdio/http",
-            "tools": ["rag_ingest", "rag_search", "rag_delete", "rag_stats", "get_server_info"],
+            "tools": [
+                "rag_ingest",
+                "rag_search",
+                "rag_delete",
+                "rag_memory_plan",
+                "rag_stats",
+                "get_server_info",
+            ],
         }
 
     return mcp

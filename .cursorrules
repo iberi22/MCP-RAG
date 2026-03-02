@@ -223,3 +223,11 @@ gh issue edit <number> --add-label "ai-agent"
 # Or trigger workflow manually
 gh workflow run agent-dispatcher.yml
 ```
+
+## 13. System Architecture Stack (Context for Agents)
+When modifying the MCP-RAG system, treat these as the canonical tools:
+- **LLM**: MiniMax API (via Anthropic-compatible endpoint using direct `urllib`).
+- **Web Search**: MiniMax MCP server via subprocess (`minimax-coding-plan-mcp`).
+- **Memory Storage**: SQLite (`sqlite_cognitive_repository.py`).
+- **AST Chunking**: Rust binary (`tools/rust-ast-chunker`) using `tree-sitter`.
+- **Cognitive System**: 4 memory levels (Sensory, Working, Episodic, Semantic) automatically scored.

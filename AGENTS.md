@@ -184,8 +184,11 @@ Este documento centraliza las normas operativas y los flujos de trabajo que rige
   <gateway>
     - base: http://127.0.0.1:8001 (ACTUALIZADO)
     - bus: redis (streams); prefer publish/request/reply patterns when coordinating tools.
-    - storage: weaviate + Ollama embeddings (mxbai-embed-large 1024d → all-minilm 384d fallback).
-    - fallback: SQLite for memory operations when Weaviate unavailable.
+    - storage: sqlite (RAG_REPOSITORY_ADAPTER=sqlite)
+    - indexing: RAG_AUTO_INDEX_CODE=true enables background daemon syncing via rag-sync-repos.
+    - chunking: RAG_CHUNKER_ADAPTER=ast (uses high-performance Rust tree-sitter binary).
+    - embeddings: ollama (nomic-embed-text)
+    - llm: MiniMax API directly accessed via urllib without SDK (MINIMAX_API_KEY, MINIMAX_MODEL=MiniMax-M2.5)
   </gateway>
 
   <security>

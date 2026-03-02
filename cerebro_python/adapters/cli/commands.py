@@ -8,6 +8,7 @@ import os
 import sys
 from pathlib import Path
 
+from cerebro_python.application.agent_memory_ops import build_memory_ops_plan
 from cerebro_python.application.repo_context_sync import (
     DEFAULT_CACHE_DIR,
     DEFAULT_CONFIG_PATH,
@@ -108,6 +109,16 @@ def run_cli(
     p_sync.add_argument("--full-resync", action="store_true")
     p_sync.add_argument("--dry-run", action="store_true")
 
+    p_memory_plan = sub.add_parser(
+        "rag-memory-plan",
+        help="Recommend CLI/MCP steps to retrieve context or investigate memory/history",
+    )
+    p_memory_plan.add_argument("--query", "-q", required=True)
+    p_memory_plan.add_argument("--top-k", type=int, default=8)
+    p_memory_plan.add_argument("--project-id")
+    p_memory_plan.add_argument("--environment-id")
+    p_memory_plan.add_argument("--include-environment-id", action="append", default=[])
+
     args = parser.parse_args(argv)
 
     match args.cmd:
@@ -195,6 +206,17 @@ def run_cli(
                     full_resync=args.full_resync,
                     dry_run=args.dry_run,
                     max_file_bytes=args.max_file_bytes,
+                )
+            )
+            return 0
+        case "rag-memory-plan":
+            _emit(
+                build_memory_ops_plan(
+                    query=args.query,
+                    top_k=args.top_k,
+                    project_id=args.project_id,
+                    environment_id=args.environment_id,
+                    include_environment_ids=args.include_environment_id,
                 )
             )
             return 0
