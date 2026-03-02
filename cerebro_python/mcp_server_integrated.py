@@ -6,9 +6,16 @@ import argparse
 
 import uvicorn
 
+from cerebro_python.application.repo_context_sync import trigger_auto_index
 from cerebro_python.bootstrap.container import Container
 
 container = Container()
+service = container.build_service()
+trigger_auto_index(service)
+
+mcp = container.build_mcp(service=service) if hasattr(container, 'build_mcp_with') else container.build_mcp()
+# fallback for older container interface, actually `build_mcp` uses internal.
+# Re-build container manually
 mcp = container.build_mcp()
 app = mcp.streamable_http_app
 

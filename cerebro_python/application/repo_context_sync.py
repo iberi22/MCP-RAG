@@ -9,7 +9,8 @@ import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+import os
+import threading
 from urllib.parse import urlparse
 
 from cerebro_python.application.use_cases import RagService
@@ -621,3 +622,26 @@ def _git_text(repo_dir: Path, *args: str, use_cwd: bool = True) -> str:
 
 def _normalize_path(path: str) -> str:
     return path.strip().replace("\\", "/")
+
+
+def trigger_auto_index(service: RagService) -> None:
+    """Trigger the auto code index sync via a background thread if enabled."""
+    if os.getenv("RAG_AUTO_INDEX_CODE", "false").lower() != "true":
+        return
+
+    def _sync_task() -> None:
+        try:
+            print("[Auto-Index] Starting repository synchronization...")
+            result = sync_repositories_from_config(service=service)
+            totals = result.get("totals", {})
+            print(
+                f"[Auto-Index] Completed. Upserts: {totals.get('upserted', 0)}, "
+                f"Deletes: {totals.get('deleted', 0)}."
+            )
+        except Exception as e:
+            print(f"[Auto-Index] Failed to synchronize repositories: {e}")
+
+    # Fire and forget
+    thread = threading.Thread(target=_sync_task, daemon=True)
+    thread.start()
+

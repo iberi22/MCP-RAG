@@ -178,3 +178,21 @@ Exposed tools:
 
 ## Tests
 - `python -m pytest -q tests`
+
+## Protocol Issue Tracking
+- Permanent issue records are tracked in `.gitcore/features.json`.
+- Active draft for this request: `issue-rag-data-platform-2026-03-02`.
+
+## Plan Status (Implemented vs Pending)
+
+### Implemented
+- Incremental repo sync pipeline (`rag-sync-repos`) with diff-based upsert/delete.
+- GitHub Actions automation for periodic repo context sync.
+- Cognitive memory core components (models, ports, adapters, service) with unit tests.
+
+### Pending to close the business plan
+- Wire cognitive memory cycle into default runtime flow (RAG/CLI/MCP path).
+- Finalize production repository catalog for stack-segmented sync (current config may be bootstrap/local).
+- Define storage strategy decision gate (GitHub segmented repos vs hybrid GitHub + Hugging Face data lake).
+
+For detailed architecture and business requirements, see `.gitcore/ARCHITECTURE.md` and `docs/GestiónCognitivadeMemoriasporLLM.md`.

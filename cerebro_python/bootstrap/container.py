@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 
 from cerebro_python.adapters.chunking.simple_chunker import SimpleChunker
+from cerebro_python.adapters.chunking.ast_chunker import AstChunker
 from cerebro_python.adapters.embeddings.hash_embedding import HashEmbeddingAdapter
 from cerebro_python.adapters.embeddings.ollama_embedding import OllamaEmbeddingAdapter
 from cerebro_python.adapters.mcp.server import build_mcp
@@ -36,6 +37,7 @@ class Container:
         chunk_size = int(os.getenv("RAG_CHUNK_SIZE", "900"))
         chunk_overlap = int(os.getenv("RAG_CHUNK_OVERLAP", "150"))
         self.registry.register("chunker", "simple", lambda: SimpleChunker(chunk_size=chunk_size, chunk_overlap=chunk_overlap))
+        self.registry.register("chunker", "ast", AstChunker)
 
         self.registry.register("embedder", "hash", lambda: HashEmbeddingAdapter(dims=int(os.getenv("RAG_HASH_DIMS", "256"))))
         self.registry.register(

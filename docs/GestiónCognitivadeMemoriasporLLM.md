@@ -4,6 +4,44 @@
 
 **¿Es viable?** Sí, absolutamente. La investigación actual (2024-2026) demuestra múltiples implementaciones funcionales donde LLMs administran memorias de forma jerárquica, promoviendo/demotando información entre niveles según contexto y relevancia. El campo está en plena madurez con papers de NeurIPS, ICLR, y frameworks open-source de producción.
 
+## Estado de Implementación en MCP-RAG (2026-03-02)
+
+Esta sección aterriza el documento a la implementación real del repositorio.
+
+### ✅ Implementado en código
+
+- Modelo cognitivo base en `cerebro_python/domain/models.py`:
+  - `MemoryLevel`, `CognitiveMeta`, `CognitiveScore`, `CognitiveConfig`.
+- Puertos cognitivos en `cerebro_python/domain/ports.py`:
+  - `CognitiveScorerPort`, `MemoryLevelPort`, `LLMScorerPort`.
+- Orquestación cognitiva en `cerebro_python/application/cognitive_service.py`:
+  - `populate_working_memory`, `post_interaction_update`, `run_decay`, `run_consolidation`.
+- Adaptadores cognitivos en `cerebro_python/adapters/cognitive/`.
+- Persistencia cognitiva SQLite en `cerebro_python/adapters/storage/sqlite_cognitive_repository.py`.
+- Cobertura de pruebas:
+  - `tests/test_cognitive_service.py`
+  - `tests/test_cognitive_scorer.py`
+
+### ⚠️ Pendiente para cerrar la implementación end-to-end
+
+- Integrar explícitamente `CognitiveService` en el flujo principal de `RagService`/CLI/MCP (hoy existe el servicio y pruebas unitarias, pero no está conectado como camino de ejecución por defecto).
+- Definir comandos operativos de ciclo cognitivo (por ejemplo: decay programado y consolidación programada) en CLI/MCP.
+- Añadir métricas operativas de negocio (coste por scoring, latencia, tasa de consolidación, ratio de olvido útil).
+
+### Correcciones de nomenclatura (respecto a versiones anteriores del plan)
+
+- Donde se menciona `sqlite_repo.py`, en este repositorio corresponde `sqlite_repository.py` y `sqlite_cognitive_repository.py`.
+- Donde se propone `CognitiveMemoryPort`, en la implementación actual el contrato equivalente está separado en:
+  - `CognitiveScorerPort`
+  - `MemoryLevelPort`
+  - `LLMScorerPort`
+
+### Estado del issue asociado
+
+- Issue de protocolo: `issue-rag-data-platform-2026-03-02`
+- Estado actual: `Draft / Refinement in progress`
+- Fuente de verdad de estado: `.gitcore/features.json`
+
 ---
 
 ## 1. Estado del Arte — Papers Clave

@@ -86,7 +86,7 @@
     {
       "key": "local/mcp-rag",
       "url": "file:///e:/scripts-python/MCP-RAG",
-      "branch": "main",
+      "branch": "master",
       "stack": "python",
       "project_id": "mcp-rag-self",
       "environment_id": "dev",

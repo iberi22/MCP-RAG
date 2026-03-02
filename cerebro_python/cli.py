@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from cerebro_python.adapters.cli.commands import run_cli
+from cerebro_python.application.repo_context_sync import trigger_auto_index
 from cerebro_python.bootstrap.container import Container
 from cerebro_python.mcp_server_integrated import main as mcp_main
 
@@ -10,6 +11,8 @@ from cerebro_python.mcp_server_integrated import main as mcp_main
 def main(argv: list[str] | None = None) -> int:
     container = Container()
     service = container.build_service()
+    trigger_auto_index(service)
+
     return run_cli(
         service=service,
         launch_mcp=mcp_main,
