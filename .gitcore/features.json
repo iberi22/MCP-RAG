@@ -4,8 +4,8 @@
     "project": "MCP-RAG",
     "created": "2026-03-02",
     "last_verified": "2026-03-02",
-    "total_features": 9,
-    "passing": 8,
+    "total_features": 12,
+    "passing": 11,
     "failing": 1
   },
   "features": [
@@ -130,6 +130,21 @@
       "notes": "Core exists; end-to-end runtime wiring remains a separate pending issue."
     },
     {
+      "id": "feat-agent-memory-ops-skill",
+      "category": "integration",
+      "description": "Agent memory ops skill for proper CLI/MCP memory usage and git-history investigations",
+      "steps": [
+        "Generate intent-aware plan via rag-memory-plan",
+        "Expose MCP tool rag_memory_plan for agent orchestration",
+        "Ingest git process history via scripts/skills/mcp_rag_memory_ops/git_history_ingest.py"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_agent_memory_ops.py",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Skill assets: scripts/skills/mcp_rag_memory_ops/skill.json + playbook.json"
+    },
+    {
       "id": "issue-rag-data-platform-2026-03-02",
       "category": "planning",
       "description": "Business-aligned multi-repo RAG data platform (segmented shards + on-demand retrieval)",
@@ -144,6 +159,36 @@
       "github_issue": "issue-rag-data-platform-2026-03-02",
       "last_tested": "2026-03-02",
       "notes": "Draft active in .gitcore/ARCHITECTURE.md and docs/GestiónCognitivadeMemoriasporLLM.md."
+    },
+    {
+      "id": "feat-minimax-integration",
+      "category": "integration",
+      "description": "Native integration with MiniMax LLM API and MiniMax MCP web search tools",
+      "steps": [
+        "Call MiniMax compatible Anthropic endpoint directly without SDK",
+        "Spawn MiniMax MCP subprocess for web search capabilities",
+        "Use CLI commands rag-ask, rag-chat, rag-web-ask to prompt the model"
+      ],
+      "passes": true,
+      "verified_by": "manual-cli",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Enabled via MINIMAX_API_KEY and MINIMAX_MODEL."
+    },
+    {
+      "id": "feat-rust-ast-chunker",
+      "category": "core",
+      "description": "High-performance semantic AST code chunker in Rust with Python wrapper and auto-index daemon",
+      "steps": [
+        "Parse code using tree-sitter locally with Rust binary",
+        "Generate semantic blocks for continuous delivery into vector database",
+        "Run daemon thread on startup based on RAG_AUTO_INDEX_CODE env flag"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/ + manual-cli",
+      "github_issue": null,
+      "last_tested": "2026-03-02",
+      "notes": "Enabled via RAG_CHUNKER_ADAPTER=ast and RAG_AUTO_INDEX_CODE=true."
     }
   ],
   "verification_commands": {
@@ -152,6 +197,8 @@
     "eval_docker": "powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1",
     "adapters": "python -m cerebro_python adapters",
     "repo_sync_dry_run": "python -m cerebro_python rag-sync-repos --config scripts/skills/repo_context_sync/repos.config.json --dry-run",
-    "cognitive_tests": "python -m pytest -q tests/test_cognitive_scorer.py tests/test_cognitive_service.py"
+    "cognitive_tests": "python -m pytest -q tests/test_cognitive_scorer.py tests/test_cognitive_service.py",
+    "memory_ops_tests": "python -m pytest -q tests/test_agent_memory_ops.py",
+    "memory_plan_cli": "python -m cerebro_python rag-memory-plan -q \"investiga historial de auth\" --project-id alpha --environment-id dev"
   }
 }
