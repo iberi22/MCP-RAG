@@ -23,6 +23,10 @@ class AstChunker:
         self.binary_path = binary_path
         self._fallback = SimpleChunker()
 
+    def split(self, text: str) -> list[str]:
+        """Split text into chunks (alias for chunk method for CLI compatibility)."""
+        return self.chunk(text)
+
     def chunk(self, text: str) -> list[str]:
         """Chunk raw text (e.g. from tests where no file path is given).
 
