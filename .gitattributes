@@ -7,6 +7,12 @@
 *_key* filter=secret
 *.env filter=secret
 
+# Normalize line endings consistently in-repo.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
 # Database files: Never commit
 *.db -text
 *.sqlite -text
