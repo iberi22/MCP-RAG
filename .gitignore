@@ -25,3 +25,4 @@ env/
 .coverage
 coverage.xml
 htmlcov/
+.cache/
