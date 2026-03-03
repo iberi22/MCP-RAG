@@ -29,6 +29,8 @@ score = w_rec * recency + w_imp * importance + w_rel * relevance + w_freq * freq
 1. **Promoción (L1 -> L2)**: Cuando una memoria en Working Memory alcanza el `PROMOTE_L1_THRESHOLD`, se persiste en el almacén Episódico.
 2. **Consolidación (L2 -> L3)**: Cuando varios fragmentos episódicos relacionados superan el `CONSOLIDATE_THRESHOLD`, el LLM los sintetiza en un único hecho semántico permanente.
 3. **Decaimiento (Olvido)**: Las memorias episódicas pierden puntuación con el tiempo. Si caen por debajo del `FORGET_THRESHOLD`, se eliminan o archivan.
+4. **Background Runtime**: Un scheduler autónomo ejecuta `run_decay` y `run_consolidation` por intervalos configurables sin bloquear búsquedas.
+5. **Persistencia L3 Completa**: Cada consolidación L2→L3 guarda metadatos cognitivos y también el texto sintetizado en `rag_chunks` para que sea recuperable por `rag_search`.
 
 ## Configuración
 
@@ -38,3 +40,6 @@ Variables principales en `.env`:
 - `RAG_COGNITIVE_DECAY_LAMBDA=0.02` (Tasa de olvido por hora)
 - `RAG_COGNITIVE_PROMOTE_L1_THRESHOLD=0.6`
 - `RAG_COGNITIVE_CONSOLIDATE_THRESHOLD=0.75`
+- `RAG_COGNITIVE_BACKGROUND_ENABLED=true`
+- `RAG_COGNITIVE_CONSOLIDATION_INTERVAL_MIN=10`
+- `RAG_COGNITIVE_DECAY_INTERVAL_MIN=60`

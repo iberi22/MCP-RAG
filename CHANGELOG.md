@@ -17,8 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Semantic AST Chunker in Rust**: Developed a high-performance `tree-sitter` binaries (`tools/rust-ast-chunker`) that splits code logically (Python, Javascript, TypeScript, Rust) ensuring full classes/functions context instead of raw character counts.
 - **Background Auto-Index Daemon**: Using `RAG_AUTO_INDEX_CODE=true` allows the `RagService` to silently update context via Git whenever the application starts, completely decoupled from the main thread.
 - **New User CLI Commands**: Added `rag-ask`, `rag-chat`, `rag-web-ingest`, `rag-web-ask` to the core CLI for quick testing and AI-loop feedback execution.
+- **MiniMax Query Rewriter Adapter**: Added `RAG_QUERY_REWRITER_ADAPTER=minimax` with deterministic fallback to `rules`.
+- **MiniMax Reranker Adapter**: Added `RAG_RERANKER_ADAPTER=minimax` with blended LLM/base scoring and fallback to heuristic reranker.
+- **Cognitive Background Runtime**: Added periodic scheduler (`RAG_COGNITIVE_BACKGROUND_ENABLED`) to run decay and L2→L3 consolidation autonomously.
 
 ### Changed
 - Refactored `Dockerfile` and `docker-compose.yml` to inject `.env` MiniMax context securely.
 - Updated documentation across `AGENTS.md`, `.gitcore/ARCHITECTURE.md`, `README.md` and `.cursorrules` to define the new architecture baseline.
 - Project is officially shifting into **BETA** state until rigorous quantitative RAG benchmarks (retrieval recall, context precision, answer fidelity, web-hallucination rates) confirm the maturity of the Cognitive Memoria system.
+- Updated `CognitiveService.run_consolidation` to persist L3 semantic facts as searchable `rag_chunks` in addition to cognitive metadata.

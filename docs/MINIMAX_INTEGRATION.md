@@ -10,6 +10,8 @@ El adaptador `MinimaxLLMClient` se comunica directamente con la API de MiniMax u
 - **Funciones**:
   - Scoring de importancia para memorias.
   - Consolidación de episodios en hechos semánticos.
+  - Re-escritura semántica de consultas (`query_rewriter=minimax`).
+  - Re-reranking de resultados Top-K (`reranker=minimax`).
   - Generación de respuestas fundamentadas (RAG).
 - **Fallback**: Si la API no está disponible, el sistema usa comportamientos por defecto (scoring neutro y unión de texto simple) para no interrumpir el flujo.
 
@@ -31,4 +33,9 @@ Utilizamos el MCP oficial `minimax-coding-plan-mcp` para dotar al RAG de capacid
 MINIMAX_API_KEY=tu_api_key_aqui
 MINIMAX_API_HOST=https://api.minimax.io
 MINIMAX_MODEL=MiniMax-M2.5
+RAG_QUERY_REWRITER_ADAPTER=minimax   # opt-in
+RAG_RERANKER_ADAPTER=minimax         # opt-in
+RAG_LLM_REWRITE_MAX_TOKENS=96
+RAG_LLM_RERANK_TOP_N=20
+RAG_LLM_RERANK_WEIGHT=0.45
 ```

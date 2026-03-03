@@ -3,9 +3,9 @@
   "metadata": {
     "project": "MCP-RAG",
     "created": "2026-03-02",
-    "last_verified": "2026-03-02",
-    "total_features": 12,
-    "passing": 11,
+    "last_verified": "2026-03-03",
+    "total_features": 16,
+    "passing": 15,
     "failing": 1
   },
   "features": [
@@ -127,7 +127,7 @@
       "verified_by": "pytest tests/test_cognitive_scorer.py tests/test_cognitive_service.py",
       "github_issue": null,
       "last_tested": "2026-03-02",
-      "notes": "Core exists; end-to-end runtime wiring remains a separate pending issue."
+      "notes": "Core exists with runtime wiring enabled in CLI and MCP entrypoints."
     },
     {
       "id": "feat-agent-memory-ops-skill",
@@ -189,16 +189,80 @@
       "github_issue": null,
       "last_tested": "2026-03-02",
       "notes": "Enabled via RAG_CHUNKER_ADAPTER=ast and RAG_AUTO_INDEX_CODE=true."
+    },
+    {
+      "id": "feat-symbol-based-indexing",
+      "category": "enhancement",
+      "description": "Indexación por símbolos con IDs estables y recuperación O(1) por byte offsets",
+      "steps": [
+        "Extraer símbolos por lenguaje (Python, JS/TS, Go, Rust)",
+        "Generar stable symbol IDs (file_path::qualified_name#kind)",
+        "Persistir offsets en índice JSON y recuperar snippets por seek()",
+        "Exponer operaciones index/search/get/outline"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_symbol_indexing.py",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/3",
+      "last_tested": "2026-03-03",
+      "notes": "P0 completado. P1 y P2 se continúan en issues #3 y #2."
+    },
+    {
+      "id": "feat-multi-provider-llm",
+      "category": "core",
+      "description": "Arquitectura de servicios LLM con soporte para múltiples proveedores (OpenRouter, DeepSeek, MiniMax y CLI)",
+      "steps": [
+        "Definir interface LLMProvider abstraída",
+        "Implementar adaptadores para OpenRouter y DeepSeek",
+        "Configurar selección dinámica vía RAG_LLM_PROVIDER",
+        "Asegurar fallback seguro entre proveedores"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_llm_providers.py",
+      "github_issue": ".github/issues/issue-multi-provider-llm.md",
+      "last_tested": "2026-03-03",
+      "notes": "Cobertura unitaria agregada para parse/fallback/disponibilidad."
+    },
+    {
+      "id": "feat-headless-cli-agents",
+      "category": "integration",
+      "description": "Integración con agentes CLI headless (Codex, Gemini CLI, Qwen CLI)",
+      "steps": [
+        "Detectar disponibilidad de binarios CLI en el PATH",
+        "Implementar wrapper para ejecución de comandos y captura de output",
+        "Manejar graceful fallback para binario no encontrado"
+      ],
+      "passes": true,
+      "verified_by": "pytest tests/test_llm_providers.py",
+      "github_issue": ".github/issues/issue-multi-provider-llm.md",
+      "last_tested": "2026-03-03",
+      "notes": "Fail-soft silencioso con registro mínimo en stderr al perder binario."
+    },
+    {
+      "id": "feat-rag-memory-registration",
+      "category": "core",
+      "description": "Registro automático del estado del proyecto y milestones en memoria RAG",
+      "steps": [
+        "Detectar cambios en features.json automáticamente",
+        "Ingerir hitos completados como Semantic Facts (L3)",
+        "Permitir que agentes consulten el Project State vía rag-memory-plan"
+      ],
+      "passes": true,
+      "verified_by": "pending-implementation",
+      "github_issue": ".github/issues/issue-multi-provider-llm.md",
+      "last_tested": "2026-03-02",
+      "notes": "Mantiene a los agentes sincronizados con el progreso real."
     }
   ],
   "verification_commands": {
     "all": "python -m pytest -q tests",
-    "eval_local": "python scripts/rag_eval_levels.py --levels all",
-    "eval_docker": "powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1",
     "adapters": "python -m cerebro_python adapters",
-    "repo_sync_dry_run": "python -m cerebro_python rag-sync-repos --config scripts/skills/repo_context_sync/repos.config.json --dry-run",
-    "cognitive_tests": "python -m pytest -q tests/test_cognitive_scorer.py tests/test_cognitive_service.py",
+    "memory_plan_cli": "python -m cerebro_python rag-memory-plan -q \"investiga historial de auth\" --project-id alpha --environment-id dev",
     "memory_ops_tests": "python -m pytest -q tests/test_agent_memory_ops.py",
-    "memory_plan_cli": "python -m cerebro_python rag-memory-plan -q \"investiga historial de auth\" --project-id alpha --environment-id dev"
+    "cognitive_tests": "python -m pytest -q tests/test_cognitive_scorer.py tests/test_cognitive_service.py tests/test_cognitive_runtime.py",
+    "llm_provider_tests": "python -m pytest -q tests/test_llm_providers.py",
+    "symbol_index_tests": "python -m pytest -q tests/test_symbol_indexing.py",
+    "repo_sync_dry_run": "python -m cerebro_python rag-sync-repos --config scripts/skills/repo_context_sync/repos.config.json --dry-run",
+    "eval_local": "python scripts/rag_eval_levels.py --levels all",
+    "eval_docker": "powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1"
   }
 }

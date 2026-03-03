@@ -101,8 +101,8 @@ CLI-first recommendation:
 - `RAG_EMBEDDING_ADAPTER=hash|ollama`
 - `RAG_RANKER_ADAPTER=hybrid`
 - `RAG_MEMORY_POLICY_ADAPTER=smart|identity`
-- `RAG_RERANKER_ADAPTER=heuristic|identity`
-- `RAG_QUERY_REWRITER_ADAPTER=rules|identity`
+- `RAG_RERANKER_ADAPTER=heuristic|minimax|identity`
+- `RAG_QUERY_REWRITER_ADAPTER=rules|minimax|identity`
 - `RAG_SCOPE_STRATEGY_ADAPTER=strict|auto`
 - `RAG_DB_PATH=cerebro_rag.db`
 - `RAG_CHUNK_SIZE=900`
@@ -116,6 +116,9 @@ CLI-first recommendation:
 - `RAG_RERANK_BASE_WEIGHT=0.7`
 - `RAG_RERANK_LEXICAL_WEIGHT=0.3`
 - `RAG_RERANK_PHRASE_BOOST=0.1`
+- `RAG_LLM_REWRITE_MAX_TOKENS=96`
+- `RAG_LLM_RERANK_TOP_N=20`
+- `RAG_LLM_RERANK_WEIGHT=0.45`
 - `RAG_RETRIEVAL_MULTIPLIER=4`
 - `RAG_MIN_SCORE=-1.0`
 - `OLLAMA_URL=http://ollama:11434`
@@ -151,6 +154,9 @@ cognitive_score = w_rec·recency + w_imp·importance + w_rel·relevance + w_freq
 - `RAG_COGNITIVE_DECAY_LAMBDA=0.02` — Ebbinghaus decay rate.
 - `RAG_COGNITIVE_PROMOTE_L1_THRESHOLD=0.6`
 - `RAG_COGNITIVE_CONSOLIDATE_THRESHOLD=0.75`
+- `RAG_COGNITIVE_BACKGROUND_ENABLED=true` — runs periodic consolidation/decay jobs.
+- `RAG_COGNITIVE_CONSOLIDATION_INTERVAL_MIN=10`
+- `RAG_COGNITIVE_DECAY_INTERVAL_MIN=60`
 
 Copy `.env.example` to `.env` and fill in your MiniMax credentials. The system degrades gracefully (importance defaults to 0.5, consolidation to text join) when no API key is set.
 
@@ -162,7 +168,8 @@ Active RAG techniques (pure Python, low coupling):
 - Near-duplicate chunk dedupe to reduce noise
 - Decoupled memory policy: short-chunk filter, normalization, dedupe, and per-document cap
 - Optional second-stage reranking: lexical coverage + phrase boost over base relevance
-- Optional pre-retrieval query rewrite: synonym expansion for higher recall
+- Optional MiniMax reranker: LLM relevance scoring fused with base ranking
+- Optional pre-retrieval query rewrite: rules-based synonym expansion or MiniMax semantic expansion
 - Runtime relevance control: query-time `--min-score` and global `RAG_MIN_SCORE`
 - Scope isolation by project/environment with optional cross-environment expansion
 - Adaptive scope strategy via `scope_mode=strict|custom|auto`
@@ -203,7 +210,6 @@ Exposed tools:
 - Cognitive memory core components (models, ports, adapters, service) with unit tests.
 
 ### Pending to close the business plan
-- Wire cognitive memory cycle into default runtime flow (RAG/CLI/MCP path).
 - Finalize production repository catalog for stack-segmented sync (current config may be bootstrap/local).
 - Define storage strategy decision gate (GitHub segmented repos vs hybrid GitHub + Hugging Face data lake).
 
