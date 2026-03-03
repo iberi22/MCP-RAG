@@ -43,19 +43,22 @@ Suggested startup order for agents:
 - `python -m cerebro_python rag-web-ingest -q "search query"` — Searches web and ingests results.
 - `python -m cerebro_python rag-web-ask -q "question"` — Search, ingest, and answer in one step.
 
-### GitHub Repo Context Sync Skill
-- `python -m cerebro_python rag-sync-repos --config scripts/skills/repo_context_sync/repos.config.json --state .gitcore/repo_context_state.json --cache-dir .cache/repo-context-repos`
-- Skill manifest: `scripts/skills/repo_context_sync/skill.json`
-- Config template: `scripts/skills/repo_context_sync/repos.config.example.json`
-- Workflow automation: `.github/workflows/repo-context-sync.yml` (hourly + manual)
+### Agent Skills & Capabilities (Root: `.agents/skills`)
+
+We have consolidated the repository context and memory operations into a single master skill module: **`mcp_rag_memory_ops`**.
+
+- **Skill Guide (Must Read)**: `.agents/skills/mcp_rag_memory_ops/SKILL.md`
+- **Git History Ingestion**: `python .agents/skills/mcp_rag_memory_ops/git_history_ingest.py --max-commits 80 --project-id alpha --environment-id dev`
+- **Repo Context Syncing**: `python -m cerebro_python rag-sync-repos --config .agents/skills/mcp_rag_memory_ops/repos.config.json --state .gitcore/repo_context_state.json --cache-dir .cache/repo-context-repos`
+- **Workflow automation**: `.github/workflows/repo-context-sync.yml` (hourly + manual)
 
 The sync command ingests only changed files between commits and stores provenance metadata (`repo_key`, `repo_commit`, `repo_path`, `repo_stack`, `fact_key`) to keep context aligned with repository history.
 
-### Agent Memory Ops Skill (CLI + MCP)
-- Skill manifest: `scripts/skills/mcp_rag_memory_ops/skill.json`
-- Playbook: `scripts/skills/mcp_rag_memory_ops/playbook.json`
-- Git history to RAG: `python scripts/skills/mcp_rag_memory_ops/git_history_ingest.py --max-commits 80 --project-id alpha --environment-id dev`
-- MCP planning tool: `rag_memory_plan`
+#### Recommendations for AI Agents Using This Implementation:
+1. **Always read `SKILL.md` first**: Located at `.agents/skills/mcp_rag_memory_ops/SKILL.md`, it contains the exact playbook, CLI commands, and MCP tools available.
+2. **Leverage MCP Tools**: Directly call `rag_search` or `rag_memory_plan` via MCP for real-time context before writing or modifying code.
+3. **Use strict scoping**: Always default to strict scoping (`scope_mode = "strict"`) to prevent polluting results with irrelevant environments unless explicitly requested.
+4. **Historical root cause analysis**: When debugging regressions, use the `git_history_ingest.py` script to index the commit history, then use `rag_search` to understand *why* a past architectural decision was made.
 
 ## MCP Usage
 - `python -m cerebro_python mcp`
