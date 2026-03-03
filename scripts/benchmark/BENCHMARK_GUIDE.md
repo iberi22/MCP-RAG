@@ -55,3 +55,10 @@ Jules will:
 3. Automatically explore `cerebro_python/adapters` and open independent Pull Requests to improve the `HybridRanker` weights, `MMR` lambda values, or chunking strategies based on its analysis.
 
 > **Note**: This requires having the GitHub CLI (`gh`) authenticated on the machine running the swarm.
+
+## 3. Automated CI/CD (GitHub Actions)
+You don't have to run this manually! The repository includes a GitHub Actions workflow `.github/workflows/benchmark-swarm.yml`.
+
+- **Scheduled**: Runs automatically on Sundays at Midnight against default community targets (like `coderamp-labs/gitingest`).
+- **Manual Launch (Workflow Dispatch)**: You can trigger it from the "Actions" tab in GitHub and manually specify the target repository (e.g. `langchain-ai/langchain`) and swarm concurrency level.
+- **Jules Integrated**: The Action comes equipped with the `GITHUB_TOKEN`, meaning every CI/CD run will automatically create an issue for `@jules` to evaluate potential improvements!

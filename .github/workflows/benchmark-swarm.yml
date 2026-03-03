@@ -1,0 +1,70 @@
+name: Swarm Benchmark Auto-Evaluator
+
+on:
+  schedule:
+    # Run automatically every Sunday at midnight
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Target GitHub Repository Key (e.g. coderamp-labs/gitingest)'
+        required: true
+        default: 'coderamp-labs/gitingest'
+      concurrency:
+        description: 'Number of concurrent swarm agents'
+        required: true
+        default: '5'
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  run-swarm-evaluation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          # Install the generic benchmark package & CLI requirements
+          pip install -e .
+          pip install -r requirements.txt
+
+      - name: Initialize RAG Database
+        run: |
+          python -m cerebro_python repo-init
+          # (Optional depending on your exact DB setup, assuming local SQLite for pipeline)
+
+      - name: Seed Target Repository
+        env:
+          TARGET_REPO: ${{ github.event.inputs.target_repo || 'coderamp-labs/gitingest' }}
+        run: |
+          echo "Seeding $TARGET_REPO into RAG memory..."
+          python scripts/benchmark/seed_community_repos.py --repos $TARGET_REPO
+
+      - name: Launch Swarm Orchestrator
+        env:
+          TARGET_REPO: ${{ github.event.inputs.target_repo || 'coderamp-labs/gitingest' }}
+          CONCURRENCY: ${{ github.event.inputs.concurrency || '5' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Launching Swarm Benchmark against $TARGET_REPO with concurrency $CONCURRENCY"
+          # Run the Cerebro adapter which triggers the generic python package Swarm
+          # The script will output JSON diagnostics and create the GitHub issue tagging @jules.
+          python scripts/cerebro_swarm_run.py --repo-key $TARGET_REPO --concurrency $CONCURRENCY
+
+      - name: Upload Diagnostics Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: swarm-diagnostics
+          path: .cache/swarm-diagnostics/*.json
+          retention-days: 7
