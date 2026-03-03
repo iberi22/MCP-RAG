@@ -3,6 +3,7 @@
 This script wraps the Cerebro CLI using the generic `rag_swarm_benchmark`
 package to evaluate our specific database and memory policy logic.
 """
+# ruff: noqa: E402
 
 import argparse
 import json

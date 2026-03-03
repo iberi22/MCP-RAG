@@ -63,7 +63,8 @@ class OpenRouterLLMClient(LLMProvider):
             return 0.5
 
     def consolidate(self, texts: list[str]) -> str:
-        if not texts: return ""
+        if not texts:
+            return ""
         combined = "\n".join(f"- {t}" for t in texts)
         return self._chat(
             system="Given memory episodes, synthesize them into one concise semantic fact.",
@@ -71,19 +72,21 @@ class OpenRouterLLMClient(LLMProvider):
         ) or " | ".join(texts[:3])
 
     def rewrite_query(self, query: str) -> str:
-        if not query.strip(): return query
+        if not query.strip():
+            return query
         reply = self._chat(
             system='Expand technical search queries for RAG. Return only JSON: {"expanded_query":"...", "keywords":["..."]}',
             user=f"Original query: {query}"
         )
-        if not reply: return query
+        if not reply:
+            return query
         # Minimal JSON extraction
         try:
             match = re.search(r"\{.*\}", reply, re.DOTALL)
             if match:
                 data = json.loads(match.group(0))
                 return data.get("expanded_query", query)
-        except:
+        except Exception:
             pass
         return query
 
@@ -95,5 +98,5 @@ class OpenRouterLLMClient(LLMProvider):
         try:
             match = re.search(r"-?\d+(?:\.\d+)?", reply)
             return min(1.0, max(0.0, float(match.group(0)))) if match else 0.0
-        except:
+        except Exception:
             return 0.0

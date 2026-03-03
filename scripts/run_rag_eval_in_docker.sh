@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONTAINER="${1:-mcp_rag_server}"
+CONTAINER="${1:-cerebro_mcp}"
+
+extract_json_payload() {
+  awk 'found || /^[[:space:]]*{/ { found=1; print }'
+}
 
 echo "Running Docker RAG scoped smoke checks on container: ${CONTAINER}"
 
@@ -39,7 +43,7 @@ strict_json="$(docker exec "${CONTAINER}" python -m cerebro_python rag-search \
   --query "rollback release process" \
   --top-k 5 \
   --project-id alpha \
-  --environment-id dev)"
+  --environment-id dev | extract_json_payload)"
 
 expanded_json="$(docker exec "${CONTAINER}" python -m cerebro_python rag-search \
   --query "rollback release process" \
@@ -47,7 +51,7 @@ expanded_json="$(docker exec "${CONTAINER}" python -m cerebro_python rag-search 
   --project-id alpha \
   --environment-id dev \
   --scope-mode custom \
-  --include-environment-id prod)"
+  --include-environment-id prod | extract_json_payload)"
 
 strict_has_prod="$(python - <<'PY' "${strict_json}"
 import json,sys
@@ -82,4 +86,3 @@ fi
 
 echo "{\"status\":\"failed\",\"strict_count\":${strict_count},\"expanded_count\":${expanded_count},\"strict_has_prod\":${strict_has_prod},\"expanded_has_prod\":${expanded_has_prod}}"
 exit 1
-

@@ -5,7 +5,7 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import List, Dict, Any, Type
+from typing import List, Dict, Any
 
 from .base_evaluator import BaseRAGEvaluator
 from .github_judge import invoke_jules_judge

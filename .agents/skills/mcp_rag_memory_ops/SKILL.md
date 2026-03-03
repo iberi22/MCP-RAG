@@ -62,7 +62,7 @@ The codebase provides several diagnostic scripts in the `/scripts` directory to 
    - **Usage**: `python scripts/rag_eval_levels.py --levels all`
 
 2. **`scripts/run_rag_eval_in_docker.sh`** (and `.ps1` for Windows)
-   - Performs End-to-End smoke tests directly inside the running Docker container (`mcp_rag_server`), validating database isolation in a production-like environment.
+   - Performs End-to-End smoke tests directly inside the running Docker container (`cerebro_mcp`), validating database isolation in a production-like environment.
 
 3. **`scripts/mcp_http_smoke.py`**
    - Performs a minimal HTTP smoke check to ensure the MCP JSON-RPC endpoints are responding correctly.

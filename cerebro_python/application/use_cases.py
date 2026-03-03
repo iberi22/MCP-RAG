@@ -258,3 +258,6 @@ class RagService:
             "chunks": st.chunks,
             **st.details,
         }
+
+# Backward compatibility alias
+RagUseCases = RagService

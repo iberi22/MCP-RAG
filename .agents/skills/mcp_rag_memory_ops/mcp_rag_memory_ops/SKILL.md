@@ -35,7 +35,7 @@ Agents have access to a suite of RAG-specific MCP tools to directly manipulate a
 1. Review recent commits: `git log --date=iso --decorate --graph --max-count 40 --oneline`
 2. Ingest history into RAG using the bundled script:
    ```bash
-   python scripts/skills/mcp_rag_memory_ops/git_history_ingest.py --max-commits 80 --project-id <project> --environment-id <env>
+   python .agents/skills/mcp_rag_memory_ops/git_history_ingest.py --max-commits 80 --project-id <project> --environment-id <env>
    ```
 3. Search history: Use `rag_search` querying for "commit regression history blame".
 
@@ -43,7 +43,7 @@ Agents have access to a suite of RAG-specific MCP tools to directly manipulate a
 **When to use:** Before answering questions about frequently changing code, or when detecting outdated context.
 * **Sync CLI**:
   ```bash
-  python -m cerebro_python rag-sync-repos --config scripts/skills/mcp_rag_memory_ops/repos.config.json --state .gitcore/repo_context_state.json --cache-dir .cache/repo-context-repos
+  python -m cerebro_python rag-sync-repos --config .agents/skills/mcp_rag_memory_ops/repos.config.json --state .gitcore/repo_context_state.json --cache-dir .cache/repo-context-repos
   ```
 After syncing, run a `rag_search` normally.
 
@@ -62,7 +62,7 @@ The codebase provides several diagnostic scripts in the `/scripts` directory to 
    - **Usage**: `python scripts/rag_eval_levels.py --levels all`
 
 2. **`scripts/run_rag_eval_in_docker.sh`** (and `.ps1` for Windows)
-   - Performs End-to-End smoke tests directly inside the running Docker container (`mcp_rag_server`), validating database isolation in a production-like environment.
+   - Performs End-to-End smoke tests directly inside the running Docker container (`cerebro_mcp`), validating database isolation in a production-like environment.
 
 3. **`scripts/mcp_http_smoke.py`**
    - Performs a minimal HTTP smoke check to ensure the MCP JSON-RPC endpoints are responding correctly.

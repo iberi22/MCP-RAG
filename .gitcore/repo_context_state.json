@@ -2,11 +2,11 @@
   "version": 1,
   "repos": {
     "local/mcp-rag": {
-      "last_commit": "e5c9a197bd40d4ecd1ec0e30d9df4cac5553988a",
-      "last_sync_at": "2026-03-02T03:30:52.829196+00:00",
+      "last_commit": "dee275f285c80c27d5502fb925682c2d3d23423c",
+      "last_sync_at": "2026-03-03T17:12:27.417274+00:00",
       "project_id": "mcp-rag-self",
       "environment_id": "dev"
     }
   },
-  "updated_at": "2026-03-02T03:30:52.829217+00:00"
+  "updated_at": "2026-03-03T17:12:27.417300+00:00"
 }

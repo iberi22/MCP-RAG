@@ -9,6 +9,7 @@ class SimpleChunker:
         self._chunk_overlap = max(0, min(chunk_overlap, self._chunk_size - 1))
 
     def split(self, text: str) -> list[str]:
+        """Split text into chunks."""
         cleaned = text.strip()
         if not cleaned:
             return []
@@ -33,3 +34,7 @@ class SimpleChunker:
             start = max(end - self._chunk_overlap, start + 1)
 
         return chunks
+
+    def chunk(self, text: str) -> list[str]:
+        """Alias for split() - for compatibility with other chunkers."""
+        return self.split(text)

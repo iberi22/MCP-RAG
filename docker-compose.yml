@@ -13,6 +13,7 @@ services:
       - OLLAMA_MODEL=nomic-embed-text
     command: python -m cerebro_python.mcp_server_integrated --mode http
     volumes:
+      - .:/app
       - cerebro_data:/app/data        # DB persists between runs
     ports:
       - "8001:8001"

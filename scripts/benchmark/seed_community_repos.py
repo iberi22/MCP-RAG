@@ -2,9 +2,7 @@
 
 import argparse
 import json
-import os
 import subprocess
-import tempfile
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]

@@ -140,7 +140,7 @@ class Container:
             reranker=reranker,
             query_rewriter=query_rewriter,
             scope_strategy=scope_strategy,
-            retrieval_multiplier=int(os.getenv("RAG_RETRIEVAL_MULTIPLIER", "4")),
+            retrieval_multiplier=int(os.getenv("RAG_RETRIEVAL_MULTIPLIER", "5")),
             min_score=float(os.getenv("RAG_MIN_SCORE", "-1.0")),
         )
 

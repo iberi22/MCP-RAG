@@ -63,6 +63,9 @@ The sync command ingests only changed files between commits and stores provenanc
 ## MCP Usage
 - `python -m cerebro_python mcp`
 - `python -m cerebro_python.mcp_server_integrated --mode http --port 8001`
+- Health endpoints (HTTP mode):
+  - `http://localhost:8001/health`
+  - `http://localhost:8001/healthz`
 
 ## Codex MCP Configuration
 Use Streamable HTTP (recommended when Docker is running):
@@ -122,7 +125,7 @@ CLI-first recommendation:
 - `RAG_LLM_REWRITE_MAX_TOKENS=96`
 - `RAG_LLM_RERANK_TOP_N=20`
 - `RAG_LLM_RERANK_WEIGHT=0.45`
-- `RAG_RETRIEVAL_MULTIPLIER=4`
+- `RAG_RETRIEVAL_MULTIPLIER=5`
 - `RAG_MIN_SCORE=-1.0`
 - `OLLAMA_URL=http://ollama:11434`
 - `OLLAMA_MODEL=nomic-embed-text`
@@ -182,7 +185,7 @@ Active RAG techniques (pure Python, low coupling):
 - Local multi-level evaluation:
   `python scripts/rag_eval_levels.py --levels all`
 - Docker scoped smoke checks:
-  `powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1`
+  `powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1 -Container cerebro_mcp`
 - **Multi-Agent Swarm Orchestrator**:
   `python scripts/cerebro_swarm_run.py --repo-key langchain-ai/langchain --concurrency 10`
   *(See `scripts/benchmark/BENCHMARK_GUIDE.md` or the generic `rag_swarm_benchmark/` package for details).*
@@ -190,8 +193,11 @@ Active RAG techniques (pure Python, low coupling):
 ## Docker (FastMCP + Ollama embeddings)
 - `docker compose up -d --build`
 - `docker exec mcp_rag_ollama ollama pull nomic-embed-text`
-- `docker exec mcp_rag_server python -m cerebro_python rag-ingest --document-id d1 --text "test text"`
-- `docker exec mcp_rag_server python -m cerebro_python rag-search --query "test" --top-k 3`
+- `docker exec cerebro_mcp python -m cerebro_python rag-ingest --document-id d1 --text "test text"`
+- `docker exec cerebro_mcp python -m cerebro_python rag-search --query "test" --top-k 3`
+
+Security note:
+- Avoid sharing terminal output that expands secret environment variables (for example, fully rendered compose configs in CI logs).
 
 Exposed tools:
 - `rag_ingest`

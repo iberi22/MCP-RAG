@@ -17,8 +17,7 @@ jobs:
         run: docker exec mcp_rag_ollama ollama pull nomic-embed-text
 
       - name: Run Docker scoped RAG smoke
-        run: bash scripts/run_rag_eval_in_docker.sh
+        run: bash scripts/run_rag_eval_in_docker.sh cerebro_mcp
 
       - name: Run MCP HTTP smoke
         run: python scripts/mcp_http_smoke.py --url http://localhost:8001/mcp
-

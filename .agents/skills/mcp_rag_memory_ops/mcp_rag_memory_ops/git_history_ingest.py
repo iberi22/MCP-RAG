@@ -1,4 +1,5 @@
 """Ingest git history into RAG as process-memory documents."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 

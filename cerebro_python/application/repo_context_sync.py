@@ -5,19 +5,22 @@ from __future__ import annotations
 import fnmatch
 import hashlib
 import json
+import sys
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import os
 import threading
+from typing import Any
 from urllib.parse import urlparse
 
 from cerebro_python.application.use_cases import RagService
 
 DEFAULT_STATE_PATH = Path(".gitcore/repo_context_state.json")
 DEFAULT_CACHE_DIR = Path(".cache/repo-context-repos")
-DEFAULT_CONFIG_PATH = Path("scripts/skills/repo_context_sync/repos.config.json")
+DEFAULT_CONFIG_PATH = Path(".agents/skills/mcp_rag_memory_ops/repos.config.json")
+LEGACY_CONFIG_PATH = Path("scripts/skills/repo_context_sync/repos.config.json")
 DEFAULT_MAX_FILE_BYTES = 300_000
 
 DEFAULT_INCLUDE_EXTENSIONS = {
@@ -258,7 +261,7 @@ def sync_repositories_from_config(
     max_file_bytes: int = DEFAULT_MAX_FILE_BYTES,
 ) -> dict[str, Any]:
     """Sync configured repositories into RAG with incremental updates."""
-    config_file = Path(config_path)
+    config_file = _resolve_config_path(Path(config_path))
     config = _load_config(config_file, fallback_max_file_bytes=max_file_bytes)
     state_file = Path(state_path)
     cache_root = Path(cache_dir)
@@ -631,17 +634,33 @@ def trigger_auto_index(service: RagService) -> None:
 
     def _sync_task() -> None:
         try:
-            print("[Auto-Index] Starting repository synchronization...")
+            print("[Auto-Index] Starting repository synchronization...", file=sys.stderr)
             result = sync_repositories_from_config(service=service)
             totals = result.get("totals", {})
             print(
                 f"[Auto-Index] Completed. Upserts: {totals.get('upserted', 0)}, "
-                f"Deletes: {totals.get('deleted', 0)}."
+                f"Deletes: {totals.get('deleted', 0)}.",
+                file=sys.stderr,
             )
         except Exception as e:
-            print(f"[Auto-Index] Failed to synchronize repositories: {e}")
+            print(f"[Auto-Index] Failed to synchronize repositories: {e}", file=sys.stderr)
 
     # Fire and forget
     thread = threading.Thread(target=_sync_task, daemon=True)
     thread.start()
 
+
+def _resolve_config_path(config_path: Path) -> Path:
+    if config_path.exists():
+        return config_path
+    if config_path == DEFAULT_CONFIG_PATH and LEGACY_CONFIG_PATH.exists():
+        return LEGACY_CONFIG_PATH
+    raise FileNotFoundError(
+        "Config file not found. Checked: "
+        f"{config_path.as_posix()}"
+        + (
+            f", {LEGACY_CONFIG_PATH.as_posix()}"
+            if config_path == DEFAULT_CONFIG_PATH
+            else ""
+        )
+    )

@@ -1,10 +1,31 @@
 param(
-  [string]$Container = "mcp_rag_server"
+  [string]$Container = "cerebro_mcp"
 )
 
 $ErrorActionPreference = "Stop"
 
 Write-Host "Running Docker RAG scoped smoke checks on container: $Container"
+
+function Get-JsonPayload {
+  param([object]$RawText)
+  if ($RawText -is [System.Array]) {
+    $joined = ($RawText -join "`n")
+  } else {
+    $joined = [string]$RawText
+  }
+  $lines = $joined -split "(`r`n|`n|`r)"
+  $start = -1
+  for ($i = 0; $i -lt $lines.Length; $i++) {
+    if ($lines[$i].TrimStart().StartsWith("{")) {
+      $start = $i
+      break
+    }
+  }
+  if ($start -lt 0) {
+    throw "No JSON payload found in command output."
+  }
+  return ($lines[$start..($lines.Length - 1)] -join "`n")
+}
 
 $ready = $false
 for ($i = 0; $i -lt 20; $i++) {
@@ -24,8 +45,11 @@ $ingest1 = docker exec $Container python -m cerebro_python rag-ingest --document
 $ingest2 = docker exec $Container python -m cerebro_python rag-ingest --document-id beta-dev --text "beta dev architecture and coding standards" --project-id beta --environment-id dev
 $ingest3 = docker exec $Container python -m cerebro_python rag-ingest --document-id alpha-prod --text "alpha production rollback and release process" --project-id alpha --environment-id prod
 
-$searchStrict = docker exec $Container python -m cerebro_python rag-search --query "rollback release process" --top-k 5 --project-id alpha --environment-id dev
-$searchExpanded = docker exec $Container python -m cerebro_python rag-search --query "rollback release process" --top-k 5 --project-id alpha --environment-id dev --scope-mode custom --include-environment-id prod
+$searchStrictRaw = docker exec $Container python -m cerebro_python rag-search --query "rollback release process" --top-k 5 --project-id alpha --environment-id dev
+$searchExpandedRaw = docker exec $Container python -m cerebro_python rag-search --query "rollback release process" --top-k 5 --project-id alpha --environment-id dev --scope-mode custom --include-environment-id prod
+
+$searchStrict = Get-JsonPayload -RawText $searchStrictRaw
+$searchExpanded = Get-JsonPayload -RawText $searchExpandedRaw
 
 $strictObj = $searchStrict | ConvertFrom-Json
 $expandedObj = $searchExpanded | ConvertFrom-Json

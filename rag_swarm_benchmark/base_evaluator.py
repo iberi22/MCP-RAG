@@ -5,7 +5,7 @@ with the swarm benchmarking orchestrator.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 class BaseRAGEvaluator(ABC):
     """Abstract base class for integrating a custom RAG implementation."""

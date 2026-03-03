@@ -120,7 +120,7 @@ class MinimaxLLMClient(LLMProvider):
         try:
             match = re.search(r"-?\d+(?:\.\d+)?", reply)
             return min(1.0, max(0.0, float(match.group(0)))) if match else 0.0
-        except:
+        except Exception:
             return 0.0
 
     @staticmethod

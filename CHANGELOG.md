@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2-beta] - 2026-03-03
+
+### Added
+- Added HTTP health endpoints in integrated server mode: `/health` and `/healthz`.
+
+### Changed
+- Refactored `cerebro_python.mcp_server_integrated` to avoid side effects at import time.
+- Updated repository auto-index default config path to `.agents/skills/mcp_rag_memory_ops/repos.config.json` with legacy fallback support.
+- Redirected auto-index runtime logs to `stderr` to preserve clean JSON output from CLI commands.
+- Tuned balanced retrieval defaults by setting `RAG_RETRIEVAL_MULTIPLIER=5`.
+
+## [0.9.1-beta] - 2026-03-03
+
+### Added
+- Added `SimpleChunker.chunk()` as a compatibility alias to `split()` for adapters expecting a `chunk()` method.
+- Added backward-compatibility alias `RagUseCases = RagService` in the application use-cases module.
+
+### Changed
+- Updated Docker compose development behavior by mounting the workspace into the container (`.:/app`) for aligned runtime code.
+- Standardized smoke scripts and workflow defaults to use `cerebro_mcp` as the server container name.
+- Updated README deployment commands and smoke examples to use the current container naming.
+
+### Security
+- Added operational guidance to avoid exposing expanded secret environment variables in shared logs.
+
 ## [0.9.0-beta] - 2026-03-02
 
 ### Added

@@ -58,18 +58,20 @@ class DeepSeekLLMClient(LLMProvider):
         try:
             match = re.search(r"\d+", reply)
             return min(1.0, max(0.0, float(match.group(0)) / 10.0)) if match else 0.5
-        except:
+        except Exception:
             return 0.5
 
     def consolidate(self, texts: list[str]) -> str:
-        if not texts: return ""
+        if not texts:
+            return ""
         return self._chat(
             system="Synthesize memory episodes into one fact.",
             user="\n".join(texts)
         ) or " | ".join(texts[:3])
 
     def rewrite_query(self, query: str) -> str:
-        if not query.strip(): return query
+        if not query.strip():
+            return query
         reply = self._chat(
             system="Expand search query. Return only expanded text.",
             user=query
@@ -84,5 +86,5 @@ class DeepSeekLLMClient(LLMProvider):
         try:
             match = re.search(r"-?\d+(?:\.\d+)?", reply)
             return min(1.0, max(0.0, float(match.group(0)))) if match else 0.0
-        except:
+        except Exception:
             return 0.0

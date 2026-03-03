@@ -1,4 +1,5 @@
 """Multi-level RAG evaluation for scoped retrieval quality."""
+# ruff: noqa: E402
 
 from __future__ import annotations
 
@@ -176,4 +177,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
