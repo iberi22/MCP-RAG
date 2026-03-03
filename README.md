@@ -183,6 +183,9 @@ Active RAG techniques (pure Python, low coupling):
   `python scripts/rag_eval_levels.py --levels all`
 - Docker scoped smoke checks:
   `powershell -ExecutionPolicy Bypass -File scripts/run_rag_eval_in_docker.ps1`
+- **Multi-Agent Swarm Orchestrator**:
+  `python scripts/cerebro_swarm_run.py --repo-key langchain-ai/langchain --concurrency 10`
+  *(See `scripts/benchmark/BENCHMARK_GUIDE.md` or the generic `rag_swarm_benchmark/` package for details).*
 
 ## Docker (FastMCP + Ollama embeddings)
 - `docker compose up -d --build`

@@ -13,18 +13,37 @@ python scripts/benchmark/seed_community_repos.py --repos langchain-ai/langchain 
 This script will clone the repositories into `.cache/benchmark-repos` and index everything into the vector database using the `rag-sync-repos` tool under the `benchmark` environment ID.
 
 ## 2. Launch the Swarm Orchestrator
-Once indexed, launch the orchestrator to fire up multiple `eval_agent.py` instances simultaneously.
+To run the benchmark against Cerebro, we use the specific adapter `scripts/cerebro_swarm_run.py` which inherits from the generic `rag_swarm_benchmark` package.
 
 ```bash
-python scripts/benchmark/swarm_orchestrator.py --repo-key langchain-ai/langchain --concurrency 10
+python scripts/cerebro_swarm_run.py --repo-key langchain-ai/langchain --concurrency 10
 ```
 
 ### What happens?
-1. The orchestrator spawns 10 parallel processes (`eval_agent.py`).
-2. Each agent is given a specific, complex benchmark question about the repository.
-3. Every agent uses the Cerebro CLI (`rag-search`) concurrently to aggressively query the database.
-4. The orchestrator tracks latency, hits, and crashes for every agent.
-5. A combined `swarm_report_<timestamp>.json` is exported into `.cache/benchmark-runs/` showing the concurrency performance, precision@K of the chunks retrieved, and total execution wall-time.
+1. The **Generic Orchestrator** object spawns 10 parallel threads.
+2. Each thread executes a specific, complex benchmark question about the repository against the `BaseRAGEvaluator` instance.
+3. The adapter translates this to concurrent `rag-search` CLI calls.
+4. The generic orchestrator tracks latency, hits, and crashes for every thread.
+5. A combined `swarm_report_<timestamp>.json` is exported into `.cache/swarm-diagnostics/` showing the concurrency performance, precision@K of the chunks retrieved, and total execution wall-time.
+
+### Using the Generic Package in other RAGs
+The `rag_swarm_benchmark` folder is completely isolated from Cerebro. You can install it in other projects and orchestrate benchmarking for LangChain, LlamaIndex, or internal tools:
+
+```python
+from rag_swarm_benchmark import BaseRAGEvaluator, SwarmOrchestrator
+
+class MyEvaluator(BaseRAGEvaluator):
+    def search_rag(self, query, **kwargs):
+        # Your custom DB logic
+        return {"results": [...]}
+
+    def run_agent(self, agent_id, question, target_identifier, **kwargs):
+        # The logic for answering a single test
+        return {"latency": 0.5, "agent_id": agent_id}
+
+orchestrator = SwarmOrchestrator(evaluator=MyEvaluator(), concurrency=50)
+orchestrator.run(["What is chunking?"], "my-target")
+```
 
 ### 🤖 Jules as the LLM Judge
 
