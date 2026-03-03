@@ -6,9 +6,7 @@ Format   : standard Anthropic Messages API (role/content blocks)
 Models   : MiniMax-M2.5, MiniMax-M2.5-highspeed, MiniMax-M2.1, MiniMax-M2.1-highspeed
 
 Uses only Python stdlib (json + urllib.request) — no extra pip deps needed.
-Falls back gracefully when MINIMAX_API_KEY is not set:
-  - score_importance returns 0.5 (neutral)
-  - consolidate returns a simple text join
+Falls back gracefully when MINIMAX_API_KEY is not set.
 """
 
 from __future__ import annotations
@@ -17,13 +15,14 @@ import json
 import os
 import urllib.error
 import urllib.request
-
+import re
+from cerebro_python.domain.llm_provider import LLMProvider
 
 _MESSAGES_URL = "https://api.minimax.io/anthropic/v1/messages"
 _ANTHROPIC_VERSION = "2023-06-01"
 
 
-class MinimaxLLMClient:
+class MinimaxLLMClient(LLMProvider):
     """Direct HTTP client for the MiniMax Anthropic-compatible Messages API."""
 
     def __init__(self) -> None:
@@ -34,12 +33,7 @@ class MinimaxLLMClient:
     def is_available(self) -> bool:
         return bool(self._api_key)
 
-    # ------------------------------------------------------------------
     def _chat(self, system: str, user: str, max_tokens: int = 256) -> str:
-        """POST to the Anthropic-compatible endpoint and return the text reply.
-
-        Returns an empty string on any error so callers use their fallback.
-        """
         if not self.is_available:
             return ""
 
@@ -69,25 +63,14 @@ class MinimaxLLMClient:
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
-                # Anthropic response: data["content"] is a list of blocks
                 for block in data.get("content", []):
                     if block.get("type") == "text":
                         return block["text"].strip()
                 return ""
-        except urllib.error.HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")[:300]
-            # Don't crash — just return empty so fallback takes over
-            _ = f"HTTPError {exc.code}: {body}"
-            return ""
-        except Exception:  # noqa: BLE001
+        except Exception:
             return ""
 
-    # ------------------------------------------------------------------
     def score_importance(self, text: str, context: str) -> float:
-        """Rate how important *text* is given *context* (0.0 – 1.0).
-
-        Falls back to 0.5 (neutral) when the LLM is unavailable.
-        """
         reply = self._chat(
             system="You are a memory importance evaluator. Reply with only a single integer 0–10.",
             user=f"Context: '{context}'\nRate the importance of this memory (0–10): '{text}'",
@@ -100,21 +83,50 @@ class MinimaxLLMClient:
             return 0.5
 
     def consolidate(self, texts: list[str]) -> str:
-        """Synthesise a list of episodic memories into a single semantic fact.
-
-        Falls back to joining the first three texts when the LLM is unavailable.
-        """
         if not texts:
             return ""
-
         combined = "\n".join(f"- {t}" for t in texts)
         reply = self._chat(
-            system=(
-                "You are a knowledge consolidation agent. "
-                "Given related memory episodes, synthesise them into one concise semantic fact. "
-                "Reply with only the synthesised fact."
-            ),
+            system="Synthesise related memory episodes into one concise semantic fact.",
             user=f"Episodes:\n{combined}",
             max_tokens=200,
         )
         return reply or " | ".join(t[:120] for t in texts[:3])
+
+    def rewrite_query(self, query: str, max_tokens: int = 96) -> str:
+        if not query.strip():
+            return query
+        reply = self._chat(
+            system='Expand technical search queries for RAG. Return JSON: {"expanded_query":"...", "keywords":["..."]}',
+            user=f"Original query: {query}",
+            max_tokens=max_tokens,
+        )
+        if not reply:
+            return query
+        try:
+            payload = self._extract_json(reply)
+            return str(payload.get("expanded_query", query)).strip()
+        except Exception:
+            return query
+
+    def score_relevance(self, query: str, candidate_text: str, max_tokens: int = 12) -> float:
+        if not query.strip() or not candidate_text.strip():
+            return 0.0
+        reply = self._chat(
+            system="Strict reranker. Reply with only a number from 0 to 1.",
+            user=f"Query: {query}\nCandidate: {candidate_text[:1500]}",
+            max_tokens=max_tokens,
+        )
+        try:
+            match = re.search(r"-?\d+(?:\.\d+)?", reply)
+            return min(1.0, max(0.0, float(match.group(0)))) if match else 0.0
+        except:
+            return 0.0
+
+    @staticmethod
+    def _extract_json(text: str) -> dict:
+        text = text.strip()
+        match = re.search(r"\{.*\}", text, re.DOTALL)
+        if match:
+            return json.loads(match.group(0))
+        raise ValueError("No JSON object found")

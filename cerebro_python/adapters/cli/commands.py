@@ -35,6 +35,7 @@ def run_cli(
     service: RagService,
     launch_mcp: callable,
     adapter_info: callable,
+    symbol_service: object | None = None,
     argv: list[str] | None = None,
 ) -> int:
     parser = argparse.ArgumentParser(prog="cerebro_python")
@@ -71,6 +72,15 @@ def run_cli(
 
     sub.add_parser("rag-stats", help="Show storage stats")
     sub.add_parser("adapters", help="Show selected and available adapters")
+    p_symbol_index = sub.add_parser("index-symbol-file", help="Index symbols for a source file")
+    p_symbol_index.add_argument("--file", required=True)
+    p_symbol_search = sub.add_parser("search-symbols", help="Search indexed symbols")
+    p_symbol_search.add_argument("--query", "-q", required=True)
+    p_symbol_search.add_argument("--limit", type=int, default=20)
+    p_symbol_get = sub.add_parser("get-symbol", help="Retrieve symbol code using byte offsets")
+    p_symbol_get.add_argument("--symbol-id", required=True)
+    p_symbol_outline = sub.add_parser("get-file-outline", help="Show indexed symbols for a file")
+    p_symbol_outline.add_argument("--file", required=True)
 
     # ── rag-ask: single-shot RAG + MiniMax answer ────────────────────────────
     p_ask = sub.add_parser("rag-ask", help="Ask a question answered with RAG + MiniMax")
@@ -180,6 +190,43 @@ def run_cli(
             return 0
         case "adapters":
             _emit(adapter_info())
+            return 0
+        case "index-symbol-file":
+            if symbol_service is None:
+                _emit({"status": "error", "error": "symbol_index_unavailable"})
+                return 1
+            _emit(
+                {
+                    "status": "success",
+                    "count": len(symbol_service.index_file(args.file)),
+                    "file": args.file,
+                }
+            )
+            return 0
+        case "search-symbols":
+            if symbol_service is None:
+                _emit({"status": "error", "error": "symbol_index_unavailable"})
+                return 1
+            _emit(
+                {
+                    "status": "success",
+                    "count": len(symbol_service.search_symbols(args.query, limit=args.limit)),
+                    "results": symbol_service.search_symbols(args.query, limit=args.limit),
+                }
+            )
+            return 0
+        case "get-symbol":
+            if symbol_service is None:
+                _emit({"status": "error", "error": "symbol_index_unavailable"})
+                return 1
+            _emit(symbol_service.get_symbol(args.symbol_id))
+            return 0
+        case "get-file-outline":
+            if symbol_service is None:
+                _emit({"status": "error", "error": "symbol_index_unavailable"})
+                return 1
+            outline = symbol_service.get_file_outline(args.file)
+            _emit({"status": "success", "count": len(outline), "results": outline})
             return 0
         case "rag-ask":
             return _cmd_ask(

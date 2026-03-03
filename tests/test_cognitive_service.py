@@ -64,6 +64,15 @@ class _NoOpLLM:
         return " | ".join(texts)
 
 
+class _MockMemoryRepo:
+    def __init__(self) -> None:
+        self.saved: dict[str, list[ChunkRecord]] = {}
+
+    def replace_document(self, document_id: str, records: list[ChunkRecord]) -> int:
+        self.saved[document_id] = records
+        return len(records)
+
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 def _chunk(doc_id: str = "doc1") -> ChunkRecord:
@@ -152,3 +161,21 @@ class TestRunConsolidation:
                                 CognitiveConfig(consolidation_min_episodes=3))
         created = svc.run_consolidation()
         assert created == 1
+
+    def test_persists_synthesized_l3_chunk_when_memory_repo_configured(self) -> None:
+        episodes = [(_chunk(f"ep{i}"), _meta()) for i in range(3)]
+        repo = _MockRepo({MemoryLevel.EPISODIC: episodes})
+        memory_repo = _MockMemoryRepo()
+        svc = CognitiveService(
+            repo,
+            _AlwaysHighScorer(),
+            _NoOpLLM(),
+            CognitiveConfig(consolidation_min_episodes=3),
+            memory_repo=memory_repo,
+        )
+        created = svc.run_consolidation()
+        assert created == 1
+        assert len(memory_repo.saved) == 1
+        doc_id, records = next(iter(memory_repo.saved.items()))
+        assert doc_id.startswith("L3-")
+        assert records[0].metadata["cognitive_level"] == int(MemoryLevel.SEMANTIC)

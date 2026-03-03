@@ -32,5 +32,7 @@ def test_container_uses_memory_repository_when_configured(monkeypatch):
     assert "hybrid" in info["available"]["ranker"]
     assert "smart" in info["available"]["policy"]
     assert "heuristic" in info["available"]["reranker"]
+    assert "minimax" in info["available"]["reranker"]
     assert "rules" in info["available"]["query_rewriter"]
+    assert "minimax" in info["available"]["query_rewriter"]
     assert "auto" in info["available"]["scope_strategy"]

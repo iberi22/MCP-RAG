@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 
 from cerebro_python.adapters.chunking.simple_chunker import SimpleChunker
 from cerebro_python.adapters.chunking.ast_chunker import AstChunker
@@ -12,14 +13,24 @@ from cerebro_python.adapters.mcp.server import build_mcp
 from cerebro_python.adapters.policies.identity_policy import IdentityMemoryPolicy
 from cerebro_python.adapters.policies.smart_memory_policy import SmartMemoryPolicy
 from cerebro_python.adapters.query_rewrite.identity_rewriter import IdentityQueryRewriter
+from cerebro_python.adapters.query_rewrite.minimax_rewriter import MinimaxQueryRewriter
 from cerebro_python.adapters.query_rewrite.rules_rewriter import RulesQueryRewriter
 from cerebro_python.adapters.ranking.hybrid_ranker import HybridRankerAdapter
 from cerebro_python.adapters.reranking.heuristic_reranker import HeuristicRerankerAdapter
 from cerebro_python.adapters.reranking.identity_reranker import IdentityRerankerAdapter
+from cerebro_python.adapters.reranking.minimax_reranker import MinimaxRerankerAdapter
 from cerebro_python.adapters.scope.auto_scope_strategy import AutoScopeStrategy
 from cerebro_python.adapters.scope.strict_scope_strategy import StrictScopeStrategy
 from cerebro_python.adapters.storage.inmemory_repository import InMemoryRepository
 from cerebro_python.adapters.storage.sqlite_repository import SqliteMemoryRepository
+from cerebro_python.adapters.storage.json_symbol_index import JsonSymbolIndexRepository
+
+from cerebro_python.adapters.llm.minimax_client import MinimaxLLMClient
+from cerebro_python.adapters.llm.openrouter_client import OpenRouterLLMClient
+from cerebro_python.adapters.llm.deepseek_client import DeepSeekLLMClient
+from cerebro_python.adapters.llm.cli_agent_adapter import CLIAgentLLMClient
+from cerebro_python.application.symbol_index import SymbolIndexService
+
 from cerebro_python.application.adapter_registry import AdapterRegistry
 from cerebro_python.application.use_cases import RagService
 
@@ -79,10 +90,27 @@ class Container:
                 phrase_boost=float(os.getenv("RAG_RERANK_PHRASE_BOOST", "0.1")),
             ),
         )
+        self.registry.register("reranker", "minimax", MinimaxRerankerAdapter)
         self.registry.register("query_rewriter", "identity", IdentityQueryRewriter)
         self.registry.register("query_rewriter", "rules", RulesQueryRewriter)
+        self.registry.register("query_rewriter", "minimax", MinimaxQueryRewriter)
         self.registry.register("scope_strategy", "strict", StrictScopeStrategy)
         self.registry.register("scope_strategy", "auto", AutoScopeStrategy)
+        self.registry.register(
+            "symbol_index",
+            "json",
+            lambda: JsonSymbolIndexRepository(
+                index_path=os.getenv("RAG_SYMBOL_INDEX_PATH", ".gitcore/symbol_index.json")
+            ),
+        )
+
+        # ── LLM Providers ──────────────────────────────────────────────
+        self.registry.register("llm", "minimax", MinimaxLLMClient)
+        self.registry.register("llm", "openrouter", OpenRouterLLMClient)
+        self.registry.register("llm", "deepseek", DeepSeekLLMClient)
+        self.registry.register("llm", "codex", lambda: CLIAgentLLMClient(agent_binary="codex"))
+        self.registry.register("llm", "gemini", lambda: CLIAgentLLMClient(agent_binary="gemini"))
+        self.registry.register("llm", "qwen", lambda: CLIAgentLLMClient(agent_binary="qwen"))
 
     def build_service(self) -> RagService:
         selected = self.selected_adapters()
@@ -129,6 +157,8 @@ class Container:
             "reranker": os.getenv("RAG_RERANKER_ADAPTER", "heuristic"),
             "query_rewriter": os.getenv("RAG_QUERY_REWRITER_ADAPTER", "rules"),
             "scope_strategy": os.getenv("RAG_SCOPE_STRATEGY_ADAPTER", "strict"),
+            "llm": os.getenv("RAG_LLM_PROVIDER", "minimax"),
+            "symbol_index": os.getenv("RAG_SYMBOL_INDEX_ADAPTER", "json"),
         }
 
     def available_adapters(self) -> dict[str, list[str]]:
@@ -141,4 +171,15 @@ class Container:
             "reranker": self.registry.options("reranker"),
             "query_rewriter": self.registry.options("query_rewriter"),
             "scope_strategy": self.registry.options("scope_strategy"),
+            "llm": self.registry.options("llm"),
+            "symbol_index": self.registry.options("symbol_index"),
         }
+
+    def build_llm_provider(self) -> Any:
+        selected = self.selected_adapters()["llm"]
+        return self.registry.create("llm", selected)
+
+    def build_symbol_index_service(self) -> SymbolIndexService:
+        selected = self.selected_adapters()["symbol_index"]
+        repository = self.registry.create("symbol_index", selected)
+        return SymbolIndexService(repository=repository)

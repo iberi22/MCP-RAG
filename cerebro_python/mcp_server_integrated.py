@@ -6,6 +6,7 @@ import argparse
 
 import uvicorn
 
+from cerebro_python.application.cognitive_runtime import build_cognitive_runtime_from_env
 from cerebro_python.application.repo_context_sync import trigger_auto_index
 from cerebro_python.bootstrap.container import Container
 
@@ -26,13 +27,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8001)
     args = parser.parse_args(argv)
+    cognitive_runtime = build_cognitive_runtime_from_env()
+    if cognitive_runtime is not None:
+        cognitive_runtime.start()
 
-    if args.mode == "http":
-        uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+    try:
+        if args.mode == "http":
+            uvicorn.run(app, host=args.host, port=args.port, log_level="info")
+            return 0
+
+        mcp.run()
         return 0
-
-    mcp.run()
-    return 0
+    finally:
+        if cognitive_runtime is not None:
+            cognitive_runtime.stop()
 
 
 if __name__ == "__main__":

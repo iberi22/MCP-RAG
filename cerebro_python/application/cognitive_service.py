@@ -12,6 +12,7 @@ consolidator) to provide a high-level API for:
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import uuid
 
 from cerebro_python.domain.models import (
     ChunkRecord,
@@ -23,6 +24,7 @@ from cerebro_python.domain.ports import (
     CognitiveScorerPort,
     LLMScorerPort,
     MemoryLevelPort,
+    MemoryRepositoryPort,
 )
 
 
@@ -35,11 +37,13 @@ class CognitiveService:
         scorer: CognitiveScorerPort,
         llm: LLMScorerPort,
         config: CognitiveConfig,
+        memory_repo: MemoryRepositoryPort | None = None,
     ) -> None:
         self._repo = level_repo
         self._scorer = scorer
         self._llm = llm
         self._cfg = config
+        self._memory_repo = memory_repo
 
     # ------------------------------------------------------------------
     def populate_working_memory(
@@ -128,7 +132,6 @@ class CognitiveService:
         synthesized = self._llm.consolidate(texts)
 
         # Store synthesised fact with provenance
-        import uuid
         synthetic_doc_id = f"L3-{uuid.uuid4().hex[:8]}"
         now_str = datetime.now(timezone.utc).isoformat()
         source_ids = [chunk.document_id for chunk, _ in cluster]
@@ -145,6 +148,27 @@ class CognitiveService:
                 source_ids=source_ids,
             ),
         )
+        if self._memory_repo is not None:
+            base_chunk, _ = cluster[0]
+            self._memory_repo.replace_document(
+                synthetic_doc_id,
+                [
+                    ChunkRecord(
+                        document_id=synthetic_doc_id,
+                        chunk_index=0,
+                        chunk_text=synthesized,
+                        embedding=base_chunk.embedding,
+                        metadata={
+                            "cognitive_level": int(MemoryLevel.SEMANTIC),
+                            "source_ids": source_ids,
+                            "fact_key": f"l3:{synthetic_doc_id}",
+                            "event_time": now_str,
+                            "ingested_at": now_str,
+                            "active": True,
+                        },
+                    )
+                ],
+            )
         return 1
 
     def score_importance_with_llm(self, text: str, context: str) -> float:
