@@ -51,6 +51,28 @@ After syncing, run a `rag_search` normally.
 **When to use:** Explicit need to compare between stacks or environments, or analysis of cross-repo integrations.
 * **CLI / MCP**: Use `rag_search` with `scope_mode` set to `custom` and explicitly defining `include_environment_ids: ["<other-env>"]`.
 
+### 5. Register a New Repository (`register_repo`)
+**When to use:** An agent is working in a project directory that is NOT yet indexed in RAG.
+1. First confirm the project is not already indexed:
+   ```bash
+   python -m cerebro_python rag-search --query "<project name>" --scope-mode strict
+   ```
+2. If absent, register it:
+   ```bash
+   python -m cerebro_python rag-register-repo \
+     --url "file:///absolute/path/to/project" \
+     --branch main \
+     --stack <python|typescript|go|...> \
+     --project-id <project-slug> \
+     --environment-id dev \
+     --tags "<project-slug>" \
+     --sync
+   ```
+   The `--sync` flag immediately triggers indexing after registration.
+3. For remote GitHub repos, replace the URL with the HTTPS or SSH git URL.
+
+> **Status return**: `"registered"` (new entry) or `"updated"` (already existed, fields refreshed).
+
 ---
 
 ## 🧪 Testing & Evaluation Scripts
@@ -75,6 +97,7 @@ The codebase provides several diagnostic scripts in the `/scripts` directory to 
 2. **use_custom_scope_only_when_explicitly_needed**: Only broaden to `custom` when strictly required.
 3. **preserve_repo_path_commit_provenance**: Preserve the exact path or commit origin when responding to the user.
 4. **prefer_incremental_operations_over_full_resync**: Sync incrementally rather than indexing everything from scratch.
+5. **check_before_register**: Always run a `rag_search` for the project name before calling `rag-register-repo`. If results already exist, skip registration and use the existing index.
 
 ---
 

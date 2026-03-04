@@ -60,6 +60,28 @@ The sync command ingests only changed files between commits and stores provenanc
 3. **Use strict scoping**: Always default to strict scoping (`scope_mode = "strict"`) to prevent polluting results with irrelevant environments unless explicitly requested.
 4. **Historical root cause analysis**: When debugging regressions, use the `git_history_ingest.py` script to index the commit history, then use `rag_search` to understand *why* a past architectural decision was made.
 
+### Hybrid Retrieval Strategy (Code + Large Documents)
+
+This project now formalizes a **hybrid retrieval strategy**:
+- **Code-first (agentic/structured retrieval)** for exact identifiers, symbols, files, and stack-aware repository navigation.
+- **Semantic-first (vector retrieval)** for unstructured documentation, incident notes, specs, and web-ingested knowledge.
+
+#### Enhanced Codebase Management Capabilities
+- Symbol indexing and exact symbol retrieval:
+  - `python -m cerebro_python index-symbol-file --file <path>`
+  - `python -m cerebro_python search-symbols -q "<symbol-or-query>"`
+  - `python -m cerebro_python get-symbol --symbol-id "<file::qualified_name#kind>"`
+  - `python -m cerebro_python get-file-outline --file <path>`
+- Incremental repository context sync:
+  - `python -m cerebro_python rag-sync-repos --config .agents/skills/mcp_rag_memory_ops/repos.config.json --state .gitcore/repo_context_state.json --cache-dir .cache/repo-context-repos`
+- Repository registration + optional immediate sync:
+  - `python -m cerebro_python rag-register-repo --url "file:///absolute/path/to/repo" --branch main --stack python --project-id <project> --environment-id dev --sync`
+
+#### Why this matters
+- For code queries, exact/structured retrieval avoids semantic drift and preserves path/symbol precision.
+- For large unstructured corpora (including multi-GB documents), semantic retrieval remains the scalable default.
+- The roadmap now targets both workloads together instead of forcing one retrieval method for every query.
+
 ## MCP Usage
 - `python -m cerebro_python mcp`
 - `python -m cerebro_python.mcp_server_integrated --mode http --port 8001`
@@ -212,7 +234,16 @@ Exposed tools:
 
 ## Protocol Issue Tracking
 - Permanent issue records are tracked in `.gitcore/features.json`.
-- Active draft for this request: `issue-rag-data-platform-2026-03-02`.
+- Active architecture draft: `issue-rag-data-platform-2026-03-02`.
+- New 2026-03-04 roadmap issues:
+  - `#4` research: valoración RAG 2026 (código vs no estructurado, 2GB+)
+  - `#5` ingesta lazy/streaming para documentos >2GB
+  - `#6` embeddings por lotes con retries y aislamiento por batch
+  - `#7` retrieval escalable con prefiltro + ANN/vector index
+  - `#8` planner híbrido (agentic code search + semantic docs)
+  - `#9` generación grounded con citas obligatorias y política anti-alucinación
+  - `#10` benchmark híbrido 2GB+ (código/documentos)
+  - `#11` actualización de README para administración de codebase y estrategia híbrida
 
 ## Plan Status (Implemented vs Pending)
 

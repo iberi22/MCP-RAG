@@ -522,6 +522,80 @@ def infer_repo_key(url: str) -> str:
     return cleaned
 
 
+def register_repo_in_config(
+    url: str,
+    config_path: str | Path = DEFAULT_CONFIG_PATH,
+    *,
+    branch: str = "main",
+    stack: str = "generic",
+    project_id: str = "",
+    environment_id: str = "",
+    tags: list[str] | None = None,
+    key: str = "",
+) -> dict[str, Any]:
+    """Register or update a repository entry in repos.config.json.
+
+    Dedup rules:
+    - If an entry with the same ``key`` already exists → update in-place.
+    - If an entry with the same ``url`` already exists → update in-place.
+    - Otherwise → append a new entry.
+
+    Returns a dict with keys: ``status`` ("registered" | "updated"), ``key``, ``url``.
+    """
+    config_file = Path(config_path)
+    config_file.parent.mkdir(parents=True, exist_ok=True)
+
+    if config_file.exists():
+        raw: dict[str, Any] = json.loads(config_file.read_text(encoding="utf-8"))
+    else:
+        raw = {"defaults": {}, "repositories": []}
+
+    resolved_key = key.strip() or infer_repo_key(url)
+    normalized_url = url.strip().rstrip("/")
+
+    repositories: list[dict[str, Any]] = raw.setdefault("repositories", [])
+
+    # Find existing entry by key OR url (case-insensitive on url)
+    existing_index: int | None = None
+    for idx, entry in enumerate(repositories):
+        entry_key = str(entry.get("key", "")).strip()
+        entry_url = str(entry.get("url", "")).strip().rstrip("/")
+        if entry_key == resolved_key or entry_url.lower() == normalized_url.lower():
+            existing_index = idx
+            break
+
+    new_entry: dict[str, Any] = {
+        "key": resolved_key,
+        "url": normalized_url,
+        "branch": branch or "main",
+        "stack": stack or "generic",
+    }
+    if project_id:
+        new_entry["project_id"] = project_id
+    if environment_id:
+        new_entry["environment_id"] = environment_id
+    if tags:
+        new_entry["tags"] = [t.strip() for t in tags if t.strip()]
+
+    if existing_index is not None:
+        # Preserve fields that were not explicitly supplied
+        old_entry = repositories[existing_index]
+        merged = {**old_entry, **new_entry}
+        # Keep old tags if no new ones were passed
+        if not tags and "tags" in old_entry:
+            merged["tags"] = old_entry["tags"]
+        repositories[existing_index] = merged
+        status = "updated"
+    else:
+        repositories.append(new_entry)
+        status = "registered"
+
+    raw["repositories"] = repositories
+    config_file.write_text(json.dumps(raw, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return {"status": status, "key": resolved_key, "url": normalized_url}
+
+
 def _ensure_repo_cache(target: RepoTarget, cache_root: Path) -> Path:
     repo_slug = target.key.replace("/", "__")
     repo_dir = cache_root / repo_slug

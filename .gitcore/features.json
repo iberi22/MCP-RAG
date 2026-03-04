@@ -3,10 +3,10 @@
   "metadata": {
     "project": "MCP-RAG",
     "created": "2026-03-02",
-    "last_verified": "2026-03-03",
-    "total_features": 16,
+    "last_verified": "2026-03-04",
+    "total_features": 24,
     "passing": 15,
-    "failing": 1
+    "failing": 9
   },
   "features": [
     {
@@ -251,6 +251,126 @@
       "github_issue": ".github/issues/issue-multi-provider-llm.md",
       "last_tested": "2026-03-02",
       "notes": "Mantiene a los agentes sincronizados con el progreso real."
+    },
+    {
+      "id": "issue-rag-valuation-2026-03-04",
+      "category": "research",
+      "description": "Valorar RAG 2026 para consultas de codigo y documentos no estructurados de gran tamano (2GB+)",
+      "steps": [
+        "Consolidar evidencia tecnica reciente y contrastarla con la implementacion actual",
+        "Definir criterios de enrutamiento entre recuperacion agentica de codigo y RAG semantico",
+        "Aterrizar decisiones de arquitectura y roadmap tecnico ejecutable"
+      ],
+      "passes": false,
+      "verified_by": "pending-research-conclusion",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/4",
+      "last_tested": "2026-03-04",
+      "notes": "Issue de investigacion base para priorizar mejoras de arquitectura hibrida."
+    },
+    {
+      "id": "issue-rag-large-docs-lazy-ingest-2026-03-04",
+      "category": "enhancement",
+      "description": "Ingesta lazy/streaming para documentos no estructurados >2GB",
+      "steps": [
+        "Implementar lectura incremental por bloques/paginas sin cargar el documento completo",
+        "Aplicar chunking incremental y persistencia con checkpoints",
+        "Conservar metadata de procedencia por chunk (fuente, pagina u offset)"
+      ],
+      "passes": false,
+      "verified_by": "pending-implementation",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/5",
+      "last_tested": "2026-03-04",
+      "notes": "Capacidad requerida para escalar a corpora documentales grandes sin saturar RAM."
+    },
+    {
+      "id": "issue-rag-batch-embeddings-2026-03-04",
+      "category": "enhancement",
+      "description": "Embeddings por lotes con retries y aislamiento de errores por batch",
+      "steps": [
+        "Extender interfaz de embeddings para procesamiento por lotes",
+        "Configurar tamano de batch, backoff y maximo de reintentos",
+        "Registrar telemetria de throughput/latencia y lotes fallidos"
+      ],
+      "passes": false,
+      "verified_by": "pending-implementation",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/6",
+      "last_tested": "2026-03-04",
+      "notes": "Reduce tiempo de indexacion y mejora resiliencia ante fallos parciales de API."
+    },
+    {
+      "id": "issue-rag-scalable-retrieval-ann-2026-03-04",
+      "category": "retrieval",
+      "description": "Recuperacion escalable con prefiltro y ANN/vector index sin full scan",
+      "steps": [
+        "Eliminar dependencia de fetch_all_chunks para consultas de produccion",
+        "Introducir candidatos top-k via indice vectorial y prefiltros de metadata",
+        "Mantener reranking hibrido en un set candidato reducido"
+      ],
+      "passes": false,
+      "verified_by": "pending-implementation",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/7",
+      "last_tested": "2026-03-04",
+      "notes": "Objetivo: bajar latencia p95 y consumo RAM en corpus grandes."
+    },
+    {
+      "id": "issue-rag-hybrid-retrieval-planner-2026-03-04",
+      "category": "retrieval",
+      "description": "Planner hibrido: recuperacion agentica para codigo + RAG semantico para documentos",
+      "steps": [
+        "Agregar retrieval_mode=auto|code|semantic en CLI y MCP",
+        "Enrutar consultas de codigo a simbolos/busqueda exacta/contexto estructurado",
+        "Mantener consultas no estructuradas sobre pipeline semantico y fusion opcional"
+      ],
+      "passes": false,
+      "verified_by": "pending-implementation",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/8",
+      "last_tested": "2026-03-04",
+      "notes": "Pieza central para evitar usar una sola estrategia de recuperacion para todo."
+    },
+    {
+      "id": "issue-rag-grounded-citations-2026-03-04",
+      "category": "quality",
+      "description": "Generacion grounded con citas obligatorias y politica anti-alucinacion",
+      "steps": [
+        "Fortalecer prompt de sistema con politica de evidencia estricta",
+        "Exigir citas estructuradas por fragmento usado",
+        "Aplicar abstencion explicita cuando no exista evidencia suficiente"
+      ],
+      "passes": false,
+      "verified_by": "pending-implementation",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/9",
+      "last_tested": "2026-03-04",
+      "notes": "Enfocado en reducir alucinaciones y mejorar trazabilidad de respuestas."
+    },
+    {
+      "id": "issue-rag-hybrid-benchmark-2026-03-04",
+      "category": "quality",
+      "description": "Benchmark reproducible para RAG hibrido en 2GB+ y consultas de codebase",
+      "steps": [
+        "Definir dataset grande no estructurado y dataset de consultas de codigo",
+        "Medir latencia p50/p95, memoria pico, recall@k, precision de citas y costo",
+        "Publicar baseline vs mejoras en local y Docker/CI"
+      ],
+      "passes": false,
+      "verified_by": "pending-benchmark-suite",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/10",
+      "last_tested": "2026-03-04",
+      "notes": "Sera la referencia de aceptacion para cierres de rendimiento y calidad."
+    },
+    {
+      "id": "issue-readme-hybrid-codebase-management-2026-03-04",
+      "category": "documentation",
+      "description": "Actualizar README con capacidad de administracion de codebase y estrategia hibrida",
+      "steps": [
+        "Documentar rutas code-first vs semantic-first y criterios de seleccion",
+        "Resaltar comandos operativos de simbolos, sync y registro de repos",
+        "Enlazar roadmap de issues #4-#10 para seguimiento"
+      ],
+      "passes": false,
+      "verified_by": "manual-doc-review",
+      "github_issue": "https://github.com/iberi22/MCP-RAG/issues/11",
+      "last_tested": "2026-03-04",
+      "notes": "Issue documental para alinear capacidades reales y hoja de ruta publica."
     }
   ],
   "verification_commands": {

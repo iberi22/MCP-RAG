@@ -14,6 +14,7 @@ from cerebro_python.application.repo_context_sync import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_MAX_FILE_BYTES,
     DEFAULT_STATE_PATH,
+    register_repo_in_config,
     sync_repositories_from_config,
 )
 from cerebro_python.application.use_cases import RagService
@@ -118,6 +119,24 @@ def run_cli(
     p_sync.add_argument("--max-file-bytes", type=int, default=DEFAULT_MAX_FILE_BYTES)
     p_sync.add_argument("--full-resync", action="store_true")
     p_sync.add_argument("--dry-run", action="store_true")
+
+    p_register = sub.add_parser(
+        "rag-register-repo",
+        help="Register (or update) a repository in repos.config.json and optionally sync it into RAG",
+    )
+    p_register.add_argument("--url", required=True, help="Local path (file:///) or remote git URL of the repository")
+    p_register.add_argument("--branch", default="main", help="Branch to track (default: main)")
+    p_register.add_argument("--stack", default="generic", help="Primary language/stack (e.g. python, typescript)")
+    p_register.add_argument("--project-id", default="", help="RAG project_id scope")
+    p_register.add_argument("--environment-id", default="", help="RAG environment_id scope")
+    p_register.add_argument("--key", default="", help="Unique repo key (inferred from URL if omitted)")
+    p_register.add_argument("--tags", nargs="*", default=[], help="Additional tags")
+    p_register.add_argument("--config", default=str(DEFAULT_CONFIG_PATH), help="Path to repos.config.json")
+    p_register.add_argument(
+        "--sync",
+        action="store_true",
+        help="Run rag-sync-repos immediately after registering",
+    )
 
     p_memory_plan = sub.add_parser(
         "rag-memory-plan",
@@ -255,6 +274,29 @@ def run_cli(
                     max_file_bytes=args.max_file_bytes,
                 )
             )
+            return 0
+        case "rag-register-repo":
+            result = register_repo_in_config(
+                url=args.url,
+                config_path=args.config,
+                branch=args.branch,
+                stack=args.stack,
+                project_id=args.project_id,
+                environment_id=args.environment_id,
+                tags=args.tags or [],
+                key=args.key,
+            )
+            _emit(result)
+            if args.sync:
+                print("[rag-register-repo] Running rag-sync-repos...", file=sys.stderr)
+                _emit(
+                    sync_repositories_from_config(
+                        service=service,
+                        config_path=args.config,
+                        state_path=DEFAULT_STATE_PATH,
+                        cache_dir=DEFAULT_CACHE_DIR,
+                    )
+                )
             return 0
         case "rag-memory-plan":
             _emit(
